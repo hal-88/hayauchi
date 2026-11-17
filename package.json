@@ -1,0 +1,18 @@
+{
+  "name": "hayauchi-battle",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node scripts/test-romaji.mjs && node scripts/test-clash.mjs"
+  },
+  "devDependencies": {
+    "vite": "^8.3.6"
+  },
+  "dependencies": {
+    "firebase": "^13.4.0"
+  }
+}
