@@ -154,6 +154,11 @@ export const sfx = {
   freeze() {
     tone({ freq: 2400, freqEnd: 1200, dur: 0.25, type: 'sine', gain: 0.12 });
   },
+  /** 手裏剣が刺さる「カッ」 */
+  thunk() {
+    noise({ dur: 0.05, gain: 0.35, freq: 3200, q: 3 });
+    tone({ freq: 240, freqEnd: 120, dur: 0.09, type: 'triangle', gain: 0.25 });
+  },
   click() {
     tone({ freq: 900, dur: 0.04, type: 'triangle', gain: 0.12 });
   },

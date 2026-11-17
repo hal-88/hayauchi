@@ -13,7 +13,7 @@ const app = document.getElementById('app');
 
 app.innerHTML = `
   <header class="topbar">
-    <div class="brand"><span class="seal">忍</span>はやうちバトル</div>
+    <div class="brand"><span class="seal">忍</span>はやうち忍者</div>
     <div class="top-right">
       <div class="me-chip" hidden></div>
       <div class="sound">

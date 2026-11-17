@@ -12,6 +12,7 @@ import { wordsStatus } from '../data/words.js';
 import { ninjaSvg } from '../ui/ninjaSvg.js';
 import { ninjutsuSealHtml, SCROLL_ICON } from '../ui/scrollUi.js';
 import { esc } from '../ui/typing.js';
+import { startTitleShuriken } from '../ui/shuriken.js';
 
 export function showTitle(el, go) {
   const p = getProfile();
@@ -33,7 +34,7 @@ export function showTitle(el, go) {
     <section class="title-screen">
       <div class="logo">
         <div class="logo-sub">ローマ字で早打ち！ 忍者タイピング</div>
-        <h1>はやうち<span>バトル</span></h1>
+        <h1>はやうち<span>忍者</span></h1>
       </div>
       <div class="title-body">
         <div class="hero panel">
@@ -76,5 +77,10 @@ export function showTitle(el, go) {
     routes[r]();
   };
   window.addEventListener('keydown', onKey);
-  return () => window.removeEventListener('keydown', onKey);
+  // 手裏剣：看板に2枚刺さって、ときどき背景を横切る
+  const stopShuriken = startTitleShuriken(el.querySelector('.logo'));
+  return () => {
+    window.removeEventListener('keydown', onKey);
+    stopShuriken();
+  };
 }
