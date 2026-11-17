@@ -20,7 +20,7 @@ import { jutsuChipHtml, showJutsuBanner, blurFor, freezeFor, hideKana, jutsuHint
 import { showTitle } from './title.js';
 import { showCpuSetup } from './cpuSetup.js';
 import { itemThumb } from './kura.js';
-import { COUNTDOWN_MS } from './solo.js';
+import { BATTLE_COUNTDOWN_MS as COUNTDOWN_MS } from './solo.js';
 import {
   esc,
   readTypingKey,
@@ -249,7 +249,7 @@ export function showCpuBattle(el, go, { level, target, foe }) {
     if (Math.random() >= p) return;
     timers.later(() => {
       if (phase === 'countdown' && !used.cpu && !sealed.has('cpu')) activate('cpu');
-    }, 400 + Math.random() * 1800);
+    }, 400 + Math.random() * (COUNTDOWN_MS - 1200));
   }
 
   // ---------- 忍術（エンター） ----------
@@ -341,7 +341,7 @@ export function showCpuBattle(el, go, { level, target, foe }) {
     if (score.me === target - 1) reach.push(me.name);
     if (score.cpu === target - 1) reach.push('CPU');
     const label = passiveNote || (extraNext.me ? '手裏剣で1文字ふえる！' : reach.length ? `${reach.join('も')} あと1点！` : 'つぎの巻物');
-    const steps = 3;
+    const steps = Math.round(COUNTDOWN_MS / 1000); // 5・4・3・2・1
     for (let i = 0; i < steps; i++) {
       timers.later(() => {
         if (previewed) setCountdown(card, steps - i, label);

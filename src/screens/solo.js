@@ -22,7 +22,8 @@ import {
 } from '../ui/typing.js';
 
 const QUESTIONS = 10;
-export const COUNTDOWN_MS = 3000; // のちに術を使えるのはこの間
+export const COUNTDOWN_MS = 3000; // ひとりでしゅぎょうのカウントダウン
+export const BATTLE_COUNTDOWN_MS = 5000; // CPU戦・みんなで対戦のカウントダウン（術を使えるのはこの間）
 const AFTER_CLEAR_MS = 800;
 
 export function showSolo(el, go) {

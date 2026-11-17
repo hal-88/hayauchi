@@ -21,7 +21,7 @@ import { spawnAt } from '../ui/effects.js';
 import { ninjaSvg } from '../ui/ninjaSvg.js';
 import { showTitle } from './title.js';
 import { showOnlineMenu } from './online.js';
-import { COUNTDOWN_MS } from './solo.js';
+import { BATTLE_COUNTDOWN_MS as COUNTDOWN_MS } from './solo.js';
 import {
   esc,
   readTypingKey,
@@ -285,7 +285,8 @@ export function showOnlineBattle(el, go, { code }) {
     if (shurikenOnMe) label = '手裏剣で1文字ふえる！';
 
     const delay = g.showAt - db.now();
-    for (const k of [3, 2, 1]) {
+    const steps = Math.round(COUNTDOWN_MS / 1000); // 5・4・3・2・1
+    for (let k = steps; k >= 1; k--) {
       const at = delay - k * 1000;
       if (at <= -1000) continue;
       roundTimers.later(() => {

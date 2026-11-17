@@ -1,5 +1,12 @@
 // 忍者の術の見た目（CPU戦・みんなで対戦で共通）
-import { getNinja } from '../data/ninjas.js';
+import { getNinja, NINJAS } from '../data/ninjas.js';
+import { NINJUTSU } from '../data/ninjutsu.js';
+
+// 術の名前 → 効果（案内に出す）
+const DESC = new Map([
+  ...NINJAS.map((n) => [n.jutsuInfo.name, n.jutsuInfo.desc]),
+  ...NINJUTSU.map((j) => [j.name, j.desc]),
+]);
 import { esc } from './typing.js';
 
 /** 術のアイコン（使ったらグレー） */
@@ -42,7 +49,7 @@ export function hideKana(card, on) {
 
 /** 自分の術の案内（カウントダウン中に光る）。忍者の術＝スペース、忍術＝エンター */
 export function jutsuHintHtml(key = 'スペース', cls = 'jh-ninja') {
-  return `<div class="jutsu-hint ${cls}"><kbd>${key}</kbd><span class="jh-name"></span><small class="jh-note"></small></div>`;
+  return `<div class="jutsu-hint ${cls}"><kbd>${key}</kbd><div class="jh-text"><div class="jh-top"><span class="jh-name"></span><small class="jh-note"></small></div><div class="jh-desc"></div></div></div>`;
 }
 
 /**
@@ -51,8 +58,8 @@ export function jutsuHintHtml(key = 'スペース', cls = 'jh-ninja') {
  */
 export function drawJutsuHint(el, jutsuName, state, note = '') {
   el.querySelector('.jh-name').textContent = `【${jutsuName}】`;
-  el.querySelector('.jh-note').textContent =
-    note || { ready: '今なら使える！', wait: 'カウントダウン中に使えるよ', used: '使った', blocked: '' }[state];
+  el.querySelector('.jh-note').textContent = note || { ready: '今なら使える！', wait: '', used: '使った', blocked: '' }[state] || '';
+  el.querySelector('.jh-desc').textContent = DESC.get(jutsuName) || '';
   el.dataset.state = state;
 }
 

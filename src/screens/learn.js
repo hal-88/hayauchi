@@ -1,4 +1,5 @@
-// 忍術を覚える（ガチャ）：巻物5本で1回。巻物が開いて、術の名前と★が出てくる
+// 忍術を覚える（ガチャ）：巻物5本で1回。
+// レア度の色の巻物が回転しながら飛んできて → 光って → はじけて巻物が開き、術の名前と★が出てくる
 import { SCROLL_RULES, getNinjutsu, rankName, stars } from '../data/ninjutsu.js';
 import { getScrolls, learnNinjutsu, setNinjutsu, ninjutsuCount } from '../progress/save.js';
 import { ninjutsuSealHtml, ninjutsuTagsHtml, SCROLL_ICON } from '../ui/scrollUi.js';
@@ -7,7 +8,17 @@ import { sfx } from '../audio/sfx.js';
 import { showTitle } from './title.js';
 import { showNinjutsuSelect } from './ninjutsuSelect.js';
 
-const OPEN_MS = 1400; // 巻物が光ってから開くまで
+const FLY_MS = 900; // 飛んでくる
+const GLOW_MS = [0, 700, 900, 1300]; // 光っている時間（レア度ごと。★★★は長め）
+const BURST_MS = 300; // はじける
+
+/** 巻いた巻物（横から見た形）。rank 0＝ふつうの色（まだ引いていないとき） */
+function rolledHtml(rank, cls = '') {
+  return `<div class="rolled r${rank} ${cls}">
+    ${rank === 3 ? '<span class="rl-rays"></span>' : ''}
+    <span class="rl-knob l"></span><span class="rl-body"><span class="rl-gloss"></span><span class="rl-band"></span><span class="rl-cap l"></span><span class="rl-cap r"></span></span><span class="rl-knob r"></span>
+  </div>`;
+}
 
 export function showLearn(el, go) {
   el.innerHTML = `
@@ -18,7 +29,10 @@ export function showLearn(el, go) {
         <div class="have">${SCROLL_ICON}<b class="n-scrolls"></b><span>本</span></div>
         <div class="have nj">覚えた忍術 <b class="n-nj"></b></div>
       </div>
-      ${SCROLL_HTML}
+      <div class="learn-stage">
+        ${SCROLL_HTML}
+        <div class="fly-layer"></div>
+      </div>
       <p class="learn-msg"></p>
       <div class="buttons">
         <button class="btn primary big" type="button" data-act="learn">巻物${SCROLL_RULES.learnCost}本で覚える <kbd>Enter</kbd></button>
@@ -30,11 +44,14 @@ export function showLearn(el, go) {
   const $ = (s) => el.querySelector(s);
   const card = $('.card');
   const stage = $('.stage');
+  const fly = $('.fly-layer');
   const timers = timerBag();
   let busy = false;
   let last = null;
 
-  card.querySelector('.count-layer').innerHTML = `<div class="learn-seal">？</div>`;
+  // まだ引いていないとき：ふつうの色の巻物がふわふわ浮かんでいる
+  card.classList.add('veiled');
+  fly.innerHTML = rolledHtml(0, 'idle');
 
   function drawCounts() {
     const s = getScrolls();
@@ -56,17 +73,27 @@ export function showLearn(el, go) {
     const j = getNinjutsu(r.id);
     $('[data-act="set"]').hidden = true;
     $('.learn-msg').textContent = '';
-    // 閉じた巻物が光って、開く
-    card.classList.add('closed');
-    card.classList.remove('won', 'lost', 'cleared', 'rank-1', 'rank-2', 'rank-3');
-    stage.innerHTML = '';
-    card.querySelector('.count-layer').innerHTML = `<div class="learn-seal glow r${r.rank}">？</div>`;
-    sfx.count();
-    timers.later(() => sfx.count(), 450);
-    timers.later(() => sfx.count(), 900);
     drawCounts();
+
+    // 前の結果をしまう
+    card.classList.add('veiled', 'closed');
+    card.classList.remove('rank-1', 'rank-2', 'rank-3');
+    stage.innerHTML = '';
+
+    // 1) 回転しながら飛んでくる
+    fly.innerHTML = rolledHtml(r.rank, 'fly');
+    sfx.scroll();
+    // 2) 光る
     timers.later(() => {
-      card.querySelector('.count-layer').innerHTML = '';
+      fly.querySelector('.rolled')?.classList.add('glow');
+      sfx.count();
+      timers.later(() => sfx.count(), GLOW_MS[r.rank] / 2);
+      if (r.rank === 3) timers.later(() => sfx.reward(), 200);
+    }, FLY_MS);
+    // 3) はじけて、巻物が開く
+    timers.later(() => {
+      fly.querySelector('.rolled')?.classList.add('burst');
+      fly.insertAdjacentHTML('beforeend', `<div class="learn-flash r${r.rank}"></div>`);
       stage.innerHTML = `
         <div class="learn-result">
           ${ninjutsuSealHtml(j, 'big')}
@@ -77,7 +104,8 @@ export function showLearn(el, go) {
         </div>
         <div class="clear-badge ${r.dup ? 'lose' : ''}">${r.dup ? `覚えていた… 巻物${SCROLL_RULES.dupRefund}本もどった` : '新しく覚えた！'}</div>`;
       card.classList.add(`rank-${r.rank}`);
-      card.classList.remove('closed');
+      card.classList.remove('veiled');
+      timers.later(() => card.classList.remove('closed'), 40); // 閉じた巻物がいったん見えてから開く
       sfx.scroll();
       if (!r.dup) {
         r.rank === 3 ? sfx.reward() : sfx.finish();
@@ -85,9 +113,12 @@ export function showLearn(el, go) {
       } else {
         sfx.clear();
       }
-      busy = false;
-      drawCounts();
-    }, OPEN_MS);
+      timers.later(() => {
+        fly.innerHTML = '';
+        busy = false;
+        drawCounts();
+      }, BURST_MS + 200);
+    }, FLY_MS + GLOW_MS[r.rank]);
   }
 
   $('[data-act="learn"]').addEventListener('click', learn);
