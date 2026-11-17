@@ -55,7 +55,7 @@ export function showCpuBattle(el, go, { level, target, foe }) {
   const myNj = getNinjutsu(getMyNinjutsu());
 
   el.innerHTML = `
-    <section class="play battle">
+    <section class="play battle" data-nav="off">
       <div class="scoreboard">
         <div class="side me">
           ${ninjaSvg(me.ninja, { color: eq.color, costume: eq.costume, cls: 'avatar' })}

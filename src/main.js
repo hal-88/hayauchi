@@ -6,6 +6,7 @@ import { ninjaSvg } from './ui/ninjaSvg.js';
 import { esc } from './ui/typing.js';
 import { getNinja } from './data/ninjas.js';
 import { loadWords } from './data/words.js';
+import { setupKeyNav } from './ui/keyNav.js';
 import { showTitle } from './screens/title.js';
 import { showNinjaSelect } from './screens/ninjaSelect.js';
 
@@ -36,21 +37,21 @@ function drawSound() {
   vol.value = Math.round(getVolume() * 100);
   vol.disabled = isMuted();
 }
-muteBtn.addEventListener('click', () => {
+muteBtn.addEventListener('click', (e) => {
   unlockAudio();
   setMuted(!isMuted());
   if (!isMuted() && getVolume() === 0) setVolume(0.5);
   drawSound();
-  muteBtn.blur();
+  if (e.detail) muteBtn.blur(); // マウス・タッチで押したときだけ外す（キーボードなら残す）
 });
 vol.addEventListener('input', () => {
   unlockAudio();
   setVolume(vol.value / 100);
   drawSound();
 });
-vol.addEventListener('change', () => {
-  sfx.type();
-  vol.blur(); // 打つキーが音量バーに取られないように
+vol.addEventListener('change', () => sfx.type());
+vol.addEventListener('pointerup', () => {
+  vol.blur(); // 打つキーが音量バーに取られないように（キーボードで動かしたときは残す）
 });
 drawSound();
 
@@ -75,9 +76,11 @@ applySave();
 
 // ---- 画面の切りかえ。各画面は「後片づけ関数」を返す ----
 const screenEl = document.getElementById('screen');
+setupKeyNav(screenEl); // 十字キー＋Enter で、どの画面もキーボードだけで操作できる
 let cleanup = null;
 export function go(screenFn, ...args) {
   if (cleanup) cleanup();
+  document.activeElement?.blur?.(); // 前の画面で選んでいたボタンを外す
   screenEl.innerHTML = '';
   window.scrollTo(0, 0);
   cleanup = screenFn(screenEl, go, ...args) || null;

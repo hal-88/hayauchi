@@ -28,7 +28,7 @@ const AFTER_CLEAR_MS = 800;
 
 export function showSolo(el, go) {
   el.innerHTML = `
-    <section class="play">
+    <section class="play" data-nav="off">
       <div class="status">
         <div class="pill">問題 <b class="q-no">1</b> / ${QUESTIONS}</div>
         <div class="pill">ミス <b class="miss">0</b></div>

@@ -47,7 +47,7 @@ export function showCpuSetup(el, go, preset) {
   for (const L of CPU_LEVELS) foes[L.level] = cpuNinjaFor(L.level);
 
   el.innerHTML = `
-    <section class="setup panel-page">
+    <section class="setup panel-page" data-nav="own">
       <h2>CPUとたいせん</h2>
       <div class="setup-block">
         <div class="setup-label">CPUのつよさ <span><kbd>←</kbd><kbd>→</kbd></span></div>

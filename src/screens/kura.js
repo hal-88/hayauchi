@@ -39,7 +39,7 @@ export function showKura(el, go) {
         </div>
         <div class="kura-main">
           <div class="tabs">
-            ${REWARD_KINDS.map((k) => `<button type="button" class="tab" data-kind="${k.kind}">${k.label}</button>`).join('')}
+            ${REWARD_KINDS.map((k, i) => `<button type="button" class="tab" data-kind="${k.kind}"><kbd>${i + 1}</kbd> ${k.label}</button>`).join('')}
           </div>
           <div class="items"></div>
           <p class="note">ごほうびは CPU戦 で勝つと1つもらえます（Lv2〜5 にはじめて勝ったときは 忍者が仲間に）。見た目と音だけで、強さはかわりません。</p>
@@ -103,6 +103,14 @@ export function showKura(el, go) {
   let tried = '';
   const onKey = (e) => {
     if (e.key === 'Escape') return go(showTitle);
+    // 数字キー 1〜5 でタブ（色ちがい・衣装・背景・タイピング音・エフェクト）
+    const ti = '12345'.indexOf(e.key);
+    if (ti >= 0 && e.key.length === 1) {
+      e.preventDefault();
+      tab = REWARD_KINDS[ti].kind;
+      drawItems();
+      return;
+    }
     const k = readTypingKey(e);
     if (!k?.char) return;
     e.preventDefault();

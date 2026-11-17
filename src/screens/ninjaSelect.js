@@ -8,6 +8,7 @@ import { showTitle } from './title.js';
 import { showNinjutsuSelect } from './ninjutsuSelect.js';
 
 const NAME_MAX = 8;
+const COLS = 4; // 忍者のならび（1列に4人）
 
 export function showNinjaSelect(el, go, { first = false } = {}) {
   const p = getProfile();
@@ -15,7 +16,7 @@ export function showNinjaSelect(el, go, { first = false } = {}) {
   let sel = p?.ninja || NINJAS[0].id;
 
   el.innerHTML = `
-    <section class="select panel-page">
+    <section class="select panel-page" data-nav="own">
       <h2>${first ? 'きみの忍者をえらぼう' : '忍者をえらぶ'}</h2>
       <div class="select-body">
         <div class="ninja-grid">
@@ -45,6 +46,7 @@ export function showNinjaSelect(el, go, { first = false } = {}) {
             ${first ? '' : '<button class="btn" type="button" data-act="back">もどる <kbd>Esc</kbd></button>'}
           </div>
           <p class="err" hidden></p>
+          <p class="keys-hint"><kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd> で忍者をえらぶ ・ <kbd>Enter</kbd> で決定</p>
         </div>
       </div>
     </section>
@@ -98,6 +100,19 @@ export function showNinjaSelect(el, go, { first = false } = {}) {
 
   const onKey = (e) => {
     if (e.isComposing || e.keyCode === 229) return; // 日本語入力の変換中の Enter は決定にしない
+    // 十字キーで忍者をえらぶ（4人ずつ2列）
+    const moves = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -COLS, ArrowDown: COLS };
+    if (moves[e.key] !== undefined) {
+      e.preventDefault();
+      const i = NINJAS.findIndex((n) => n.id === sel);
+      const j = i + moves[e.key];
+      if (j >= 0 && j < NINJAS.length && !(Math.abs(moves[e.key]) === 1 && Math.floor(j / COLS) !== Math.floor(i / COLS))) {
+        sel = NINJAS[j].id;
+        sfx.click();
+        draw();
+      }
+      return;
+    }
     if (e.key === 'Enter') {
       e.preventDefault();
       submit();
@@ -107,6 +122,7 @@ export function showNinjaSelect(el, go, { first = false } = {}) {
   };
   window.addEventListener('keydown', onKey);
   draw();
-  if (!p) input.focus();
+  input.focus(); // 開いたらすぐニックネームを打てる（十字キーは忍者えらびに使う）
+  input.setSelectionRange(input.value.length, input.value.length);
   return () => window.removeEventListener('keydown', onKey);
 }

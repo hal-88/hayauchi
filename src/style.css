@@ -2909,3 +2909,28 @@ svg.flip {
 @keyframes shk-rtl {
   to { transform: translate(calc(-100vw - 160px), var(--dy, 0)) rotate(-1440deg); }
 }
+
+/* ---- キーボードでえらんでいるボタン（十字キー） ---- */
+#screen button:focus-visible,
+.topbar .mute:focus-visible,
+.topbar .vol:focus-visible {
+  outline: 4px solid var(--shu);
+  outline-offset: 3px;
+  position: relative;
+  z-index: 2;
+}
+.keys-hint {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  text-align: center;
+}
+.keys-hint kbd {
+  margin: 0 1px;
+}
+.tab kbd {
+  font-size: 0.75em;
+  padding: 0 5px;
+  margin-right: 3px;
+}

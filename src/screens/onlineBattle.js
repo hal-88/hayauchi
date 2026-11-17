@@ -43,7 +43,7 @@ const roundKey = (n) => `r${n}`; // 数字だけのキーだと Firebase が配�
 
 export function showOnlineBattle(el, go, { code }) {
   el.innerHTML = `
-    <section class="play battle online">
+    <section class="play battle online" data-nav="off">
       <div class="players"></div>
       ${SCROLL_HTML}
       <div class="rivals"></div>
@@ -852,6 +852,11 @@ export function showOnlineBattle(el, go, { code }) {
   function onKey(e) {
     if (phase === 'over') {
       if (e.key === 'Enter') go(showOnlineMenu);
+      return;
+    }
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      quit(); // やめる（部屋から出る）
       return;
     }
     if (e.key === ' ') {

@@ -56,7 +56,7 @@ export function showTitle(el, go) {
         </div>
       </div>
       ${wordsNote}
-      <p class="hint">数字キーでもえらべます（<kbd>Enter</kbd> は CPUとたいせん）</p>
+      <p class="hint">数字キー、または <kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd> でえらんで <kbd>Enter</kbd></p>
     </section>
   `;
   const routes = {

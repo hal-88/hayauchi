@@ -70,7 +70,7 @@ export function showOnlineMenu(el, go) {
 export function showJoin(el, go) {
   let code = '';
   el.innerHTML = `
-    <section class="join panel-page">
+    <section class="join panel-page" data-nav="off">
       <h2>部屋コードを入れてね</h2>
       <div class="code-boxes">${'<span></span>'.repeat(4)}</div>
       <div class="keypad">
