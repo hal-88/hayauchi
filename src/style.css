@@ -2755,3 +2755,77 @@ svg.flip {
 .battle.online .scroll {
   height: clamp(190px, 36vh, 330px); /* 太い巻物＋4人＋術の説明でも収まるように */
 }
+
+/* ガチャの巻物は「少し右からななめに見た」形：切り口が見えるのは右はしだけ（2026-11-18） */
+.rl-body {
+  /* 左はしは筒の丸いふち（切り口は見えない）、右はしは切り口の楕円の下にかくれる */
+  border-radius: 16px 6px 6px 16px / 50% 10px 10px 50%;
+}
+.rl-cap.l {
+  display: none;
+}
+.rl-knob {
+  position: relative;
+}
+/* 左の軸先：筒の奥から少しのぞく */
+.rl-knob.l {
+  z-index: -1;
+  margin-right: -10px;
+  width: 26px;
+}
+/* 右の軸先：切り口のまん中から手前に出ている */
+.rl-knob.r {
+  z-index: 2;
+  margin-left: -6px;
+  width: 30px;
+  border-radius: 4px 7px 7px 4px;
+}
+
+/* ガチャの巻物：半分ひらいた巻物のSVG（2026-11-18）。布の色はレア度 */
+.rolled.r0 {
+  --c1: #8fd18a;
+  --c2: #3f9142;
+  --c3: #26632a;
+}
+.rl-svg {
+  width: clamp(190px, 38vh, 280px);
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+.sv-fab {
+  fill: var(--c2);
+}
+.sv-fab-l {
+  fill: var(--c1);
+}
+.sv-fab-d {
+  fill: var(--c3);
+}
+.sv-paper {
+  fill: #fbf3df;
+}
+.sv-ring {
+  fill: none;
+  stroke: #d8c69e;
+  stroke-width: 1.6;
+}
+.sv-ink {
+  fill: none;
+  stroke: #4a4a52;
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+.sv-knob {
+  fill: #5a2e14;
+}
+.sv-knob-end {
+  fill: #3a1c0a;
+}
+/* ★★★：金の布がきらっと光る */
+.rolled.r3 .rl-svg {
+  animation: gold-shine 1.2s ease-in-out infinite alternate;
+}
+@keyframes gold-shine {
+  to { filter: brightness(1.18) saturate(1.2); }
+}

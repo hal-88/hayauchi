@@ -12,11 +12,46 @@ const FLY_MS = 900; // 飛んでくる
 const GLOW_MS = [0, 700, 900, 1300]; // 光っている時間（レア度ごと。★★★は長め）
 const BURST_MS = 300; // はじける
 
-/** 巻いた巻物（横から見た形）。rank 0＝ふつうの色（まだ引いていないとき） */
+/**
+ * 半分ひらいた巻物（オリジナルのSVG）。少しななめに傾いていて、
+ * 切り口が見えるのは手前（下）のはしだけ。上のはしは軸先が奥からのぞく。
+ * 布の色はレア度で変わる（rank 0＝まだ引いていないときの緑）
+ */
+const ROLLED_SVG = `
+  <svg class="rl-svg" viewBox="0 0 260 230" aria-hidden="true">
+    <g transform="rotate(-20 130 115)">
+      <!-- 上の軸先（筒の奥からのぞく） -->
+      <rect class="sv-knob" x="64" y="10" width="24" height="22" rx="8"/>
+      <!-- 広げた紙：布のふち＋紙 -->
+      <path class="sv-fab-d" d="M96 34 H212 Q226 36 228 50 L232 172 Q232 186 218 188 H96 Z"/>
+      <path class="sv-fab" d="M96 30 H208 Q222 32 224 46 L228 168 Q228 182 214 184 H96 Z"/>
+      <path class="sv-paper" d="M112 46 H204 Q210 46 210 52 L213 164 Q213 170 207 170 H112 Z"/>
+      <rect x="112" y="46" width="16" height="124" fill="#000" opacity="0.08"/>
+      <!-- 筆の字 -->
+      <path class="sv-ink" d="M192 60 q-7 9 0 17 t0 17 t0 16"/>
+      <path class="sv-ink" d="M192 128 q-6 8 0 15"/>
+      <path class="sv-ink" d="M170 64 q-6 8 0 15 t0 15"/>
+      <path class="sv-ink" d="M170 116 q-6 9 0 17 t0 17"/>
+      <path class="sv-ink" d="M148 70 q-6 9 0 17 t0 17 t0 15"/>
+      <!-- 巻いてある筒 -->
+      <path class="sv-fab" d="M44 44 Q44 26 76 26 Q108 26 108 44 V176 H44 Z"/>
+      <rect class="sv-fab-l" x="54" y="34" width="12" height="138" rx="6" opacity="0.55"/>
+      <rect class="sv-fab-d" x="92" y="36" width="12" height="138" rx="6" opacity="0.5"/>
+      <!-- 手前の切り口：外の布、うずまきの紙 -->
+      <ellipse class="sv-fab-l" cx="76" cy="176" rx="32" ry="13"/>
+      <ellipse class="sv-paper" cx="76" cy="176" rx="25" ry="9.5"/>
+      <ellipse class="sv-ring" cx="76" cy="176" rx="19" ry="7"/>
+      <ellipse class="sv-ring" cx="76" cy="176" rx="13" ry="4.8"/>
+      <!-- 手前の軸先 -->
+      <rect class="sv-knob" x="66" y="172" width="20" height="20" rx="5"/>
+      <ellipse class="sv-knob-end" cx="76" cy="192" rx="10" ry="4.5"/>
+    </g>
+  </svg>`;
+
 function rolledHtml(rank, cls = '') {
   return `<div class="rolled r${rank} ${cls}">
     ${rank === 3 ? '<span class="rl-rays"></span>' : ''}
-    <span class="rl-knob l"></span><span class="rl-body"><span class="rl-gloss"></span><span class="rl-band"></span><span class="rl-cap l"></span><span class="rl-cap r"></span></span><span class="rl-knob r"></span>
+    ${ROLLED_SVG}
   </div>`;
 }
 
