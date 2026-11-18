@@ -957,6 +957,9 @@ export function showOnlineBattle(el, go, { code }) {
       spawnAt(eq.effect, stage.querySelector('.romaji .typed'));
       if (matcher.done) phase === 'nidan' ? finishNidan() : finish();
       else if (phase === 'typing') sendProgress();
+    } else if (k.char === 'x' || k.char === 'X') {
+      // 術の X を巻物が開いてから押した（ここでは x を打てない）→ ミスにしないで、術の案内で知らせる
+      nudgeHint(hintEl, 'カウントダウン中に');
     } else {
       myMiss++;
       roundMiss++;

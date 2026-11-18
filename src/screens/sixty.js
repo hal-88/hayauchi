@@ -80,6 +80,7 @@ export function showSixty(el, go, { start = false } = {}) {
             <li>打ち切ったら すぐ つぎのことば</li>
             <li>まちがえると、のこり時間が 0.5秒 へる</li>
             <li>術は使えないよ。打つ速さだけで勝負！</li>
+            <li>結果は クラスのランキングに 登録されるよ</li>
           </ul>
           <div class="my-best"><span>自己ベスト</span><b>${b ? `${b.words}<small>こ</small>` : '<small>まだなし</small>'}</b></div>
           <div class="buttons">

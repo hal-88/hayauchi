@@ -749,6 +749,9 @@ export function showCpuBattle(el, go, { level, target, foe }) {
         if (phase === 'nidan') finishNidan(true);
         else endRound('me', performance.now() - t0);
       }
+    } else if (k.char === 'x' || k.char === 'X') {
+      // 術の X を巻物が開いてから押した（ここでは x を打てない）→ ミスにしないで、術の案内で知らせる
+      nudgeHint(hintEl, 'カウントダウン中に');
     } else {
       totalMiss++;
       roundMiss++;
