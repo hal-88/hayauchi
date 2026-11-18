@@ -102,6 +102,29 @@ export function learnNinjutsu(rng = Math.random) {
   return { id: pick.id, rank, dup };
 }
 
+/** 10連：巻物50本で10回。★★以上が1つ確定（10回とも★なら、最後を★★にする）。もどり値は1回ずつの結果の配列 */
+export function learnNinjutsu10(rng = Math.random) {
+  const { learn10Cost: cost, learn10Count: n, learn10Min: min, rates, dupRefund } = SCROLL_RULES;
+  if (data.scrolls < cost) return null;
+  addScrolls(-cost);
+  const [p1, p2] = rates;
+  const ranks = Array.from({ length: n }, () => {
+    const r = rng();
+    return r < p1 ? 1 : r < p1 + p2 ? 2 : 3;
+  });
+  if (Math.max(...ranks) < min) ranks[n - 1] = min;
+  const out = ranks.map((rank) => {
+    const pool = NINJUTSU.filter((j) => j.rank === rank);
+    const pick = pool[Math.floor(rng() * pool.length)];
+    const dup = hasNinjutsu(pick.id);
+    if (dup) addScrolls(dupRefund);
+    else data.ninjutsu.push(pick.id);
+    return { id: pick.id, rank, dup };
+  });
+  persist();
+  return out;
+}
+
 /** みんなで対戦の巻物（参加＋1位ボーナス＋招き猫） */
 export function recordOnlineMatch(rank) {
   let n = SCROLL_RULES.join;

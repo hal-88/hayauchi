@@ -66,6 +66,9 @@ export const catOf = (id) => NINJUTSU_CATS.find((c) => c.id === id);
 // 巻物の決まり
 export const SCROLL_RULES = {
   learnCost: 5, // 忍術を覚える1回
+  learn10Cost: 50, // 10連（10回分）
+  learn10Count: 10,
+  learn10Min: 2, // 10連は ★★以上が1つ確定
   dupRefund: 2, // もう覚えていた術が出たらもどる
   join: 2, // 対戦に参加
   onlineWin: 3, // みんなで対戦の1位

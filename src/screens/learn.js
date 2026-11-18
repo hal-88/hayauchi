@@ -1,7 +1,7 @@
-// 忍術を覚える（ガチャ）：巻物5本で1回。
+// 忍術を覚える（ガチャ）：巻物5本で1回。10連は巻物50本で10回（★★以上が1つ確定）。
 // レア度の色の巻物が回転しながら飛んできて → 光って → はじけて巻物が開き、術の名前と★が出てくる
 import { SCROLL_RULES, getNinjutsu, rankName, stars } from '../data/ninjutsu.js';
-import { getScrolls, learnNinjutsu, setNinjutsu, ninjutsuCount } from '../progress/save.js';
+import { getScrolls, learnNinjutsu, learnNinjutsu10, setNinjutsu, ninjutsuCount } from '../progress/save.js';
 import { ninjutsuSealHtml, ninjutsuTagsHtml, SCROLL_ICON } from '../ui/scrollUi.js';
 import { SCROLL_HTML, esc, timerBag } from '../ui/typing.js';
 import { sfx } from '../audio/sfx.js';
@@ -11,6 +11,7 @@ import { showNinjutsuSelect } from './ninjutsuSelect.js';
 const FLY_MS = 900; // 飛んでくる
 const GLOW_MS = [0, 700, 900, 1300]; // 光っている時間（レア度ごと。★★★は長め）
 const BURST_MS = 300; // はじける
+const STEP_MS = 140; // 10連：1つずつ出てくる間
 
 /**
  * 半分ひらいた巻物（オリジナルのSVG）。少しななめに傾いていて、
@@ -59,7 +60,7 @@ export function showLearn(el, go) {
   el.innerHTML = `
     <section class="learn panel-page">
       <h2>忍術を覚える</h2>
-      <p class="sub">巻物${SCROLL_RULES.learnCost}本で1回。★ 60%・★★ 30%・★★★ 10%。覚えていた術が出たら巻物${SCROLL_RULES.dupRefund}本もどるよ</p>
+      <p class="sub">巻物${SCROLL_RULES.learnCost}本で1回。★ 60%・★★ 30%・★★★ 10%。覚えていた術が出たら巻物${SCROLL_RULES.dupRefund}本もどるよ。10連は★★以上が1つ確定！</p>
       <div class="learn-top">
         <div class="have">${SCROLL_ICON}<b class="n-scrolls"></b><span>本</span></div>
         <div class="have nj">覚えた忍術 <b class="n-nj"></b></div>
@@ -67,10 +68,13 @@ export function showLearn(el, go) {
       <div class="learn-stage">
         ${SCROLL_HTML}
         <div class="fly-layer"></div>
+        <div class="learn10" hidden></div>
       </div>
       <p class="learn-msg"></p>
       <div class="buttons">
-        <button class="btn primary big" type="button" data-act="learn">巻物${SCROLL_RULES.learnCost}本で覚える <kbd>Enter</kbd></button>
+        <button class="btn primary big" type="button" data-act="learn">巻物${SCROLL_RULES.learnCost}本で1回 <kbd>Enter</kbd></button>
+        <button class="btn big ten-btn" type="button" data-act="learn10">10連 巻物${SCROLL_RULES.learn10Cost}本 <kbd>0</kbd></button>
+        <button class="btn" type="button" data-act="nj" hidden>忍術をえらぶ</button>
         <button class="btn" type="button" data-act="set" hidden>この忍術をセット</button>
         <button class="btn" type="button" data-act="back">もどる <kbd>Esc</kbd></button>
       </div>
@@ -80,6 +84,7 @@ export function showLearn(el, go) {
   const card = $('.card');
   const stage = $('.stage');
   const fly = $('.fly-layer');
+  const ten = $('.learn10');
   const timers = timerBag();
   let busy = false;
   let last = null;
@@ -94,6 +99,7 @@ export function showLearn(el, go) {
     const cc = ninjutsuCount();
     $('.n-nj').textContent = `${cc.have} / ${cc.total}`;
     $('[data-act="learn"]').disabled = s < SCROLL_RULES.learnCost || busy;
+    $('[data-act="learn10"]').disabled = s < SCROLL_RULES.learn10Cost || busy;
     if (!busy && s < SCROLL_RULES.learnCost && !last) {
       $('.learn-msg').textContent = `巻物が足りないよ（あと${SCROLL_RULES.learnCost - s}本）。CPU戦やみんなで対戦でもらえるよ`;
     }
@@ -107,7 +113,9 @@ export function showLearn(el, go) {
     last = r;
     const j = getNinjutsu(r.id);
     $('[data-act="set"]').hidden = true;
+    $('[data-act="nj"]').hidden = true;
     $('.learn-msg').textContent = '';
+    ten.hidden = true;
     drawCounts();
 
     // 前の結果をしまう
@@ -156,7 +164,66 @@ export function showLearn(el, go) {
     }, FLY_MS + GLOW_MS[r.rank]);
   }
 
+  // ---------- 10連 ----------
+  function learn10() {
+    if (busy || getScrolls() < SCROLL_RULES.learn10Cost) return;
+    const list = learnNinjutsu10();
+    if (!list) return;
+    busy = true;
+    last = null;
+    const top = Math.max(...list.map((r) => r.rank));
+    $('[data-act="set"]').hidden = true;
+    $('[data-act="nj"]').hidden = true;
+    $('.learn-msg').textContent = '';
+    drawCounts();
+    card.classList.add('veiled', 'closed');
+    card.classList.remove('rank-1', 'rank-2', 'rank-3');
+    stage.innerHTML = '';
+    ten.hidden = true;
+    ten.innerHTML = '';
+
+    // いちばんよいレア度の色の巻物が飛んできて → 光って → はじける
+    fly.innerHTML = rolledHtml(top, 'fly');
+    sfx.scroll();
+    timers.later(() => {
+      fly.querySelector('.rolled')?.classList.add('glow');
+      sfx.count();
+      timers.later(() => sfx.count(), GLOW_MS[top] / 2);
+      if (top === 3) timers.later(() => sfx.reward(), 200);
+    }, FLY_MS);
+    timers.later(() => {
+      fly.querySelector('.rolled')?.classList.add('burst');
+      fly.insertAdjacentHTML('beforeend', `<div class="learn-flash r${top}"></div>`);
+      // 10こ並べて、ひとつずつ出す
+      ten.innerHTML = list
+        .map((r, i) => {
+          const j = getNinjutsu(r.id);
+          return `<div class="t10 r${r.rank} ${r.dup ? 'dup' : 'new'}" style="--d:${i * STEP_MS}ms">
+            ${ninjutsuSealHtml(j)}
+            <span class="t10-st">${stars(r.rank)}</span>
+            <b>${esc(j.name)}</b>
+            <em>${r.dup ? `+${SCROLL_RULES.dupRefund}本` : 'NEW!'}</em>
+          </div>`;
+        })
+        .join('');
+      ten.hidden = false;
+      list.forEach((r, i) => timers.later(() => (r.rank === 3 ? sfx.reward() : r.dup ? sfx.type() : sfx.count()), i * STEP_MS));
+      timers.later(() => {
+        fly.innerHTML = '';
+        const nNew = list.filter((r) => !r.dup).length;
+        const nDup = list.length - nNew;
+        $('.learn-msg').textContent = `新しく覚えた：${nNew}こ ／ 覚えていた：${nDup}こ${nDup ? `（巻物${nDup * SCROLL_RULES.dupRefund}本もどった）` : ''}`;
+        if (nNew) $('[data-act="nj"]').hidden = false;
+        nNew ? sfx.finish() : sfx.clear();
+        busy = false;
+        drawCounts();
+      }, list.length * STEP_MS + 300);
+    }, FLY_MS + GLOW_MS[top]);
+  }
+
   $('[data-act="learn"]').addEventListener('click', learn);
+  $('[data-act="learn10"]').addEventListener('click', learn10);
+  $('[data-act="nj"]').addEventListener('click', () => go(showNinjutsuSelect));
   $('[data-act="set"]').addEventListener('click', () => {
     if (!last) return;
     setNinjutsu(last.id);
@@ -168,6 +235,9 @@ export function showLearn(el, go) {
     if (e.key === 'Enter') {
       e.preventDefault();
       learn();
+    } else if (e.key === '0') {
+      e.preventDefault();
+      learn10();
     } else if (e.key === 'Escape') go(showTitle);
   };
   window.addEventListener('keydown', onKey);
