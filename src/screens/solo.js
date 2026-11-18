@@ -17,7 +17,6 @@ import {
   stampHtml,
   shake,
   setupShake,
-  missStop,
   timerBag,
 } from '../ui/typing.js';
 
@@ -60,7 +59,6 @@ export function showSolo(el, go) {
   let totalMiss = 0;
   let totalKeys = 0;
   let raf = 0;
-  let stopUntil = 0; // ミスしたあと止まっている間
   const timers = timerBag();
 
   function nextRound() {
@@ -104,7 +102,6 @@ export function showSolo(el, go) {
     missEl.textContent = totalMiss;
     sfx.miss();
     shake(card);
-    stopUntil = missStop(card);
   }
 
   function onClear() {
@@ -191,7 +188,6 @@ export function showSolo(el, go) {
     if (phase !== 'typing') return;
 
     e.preventDefault();
-    if (performance.now() < stopUntil) return;
     if (matcher.input(k.char)) {
       totalKeys++;
       sfx.type();

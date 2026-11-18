@@ -15,7 +15,7 @@ export const NINJAS = [
   },
   {
     id: 'tetsu', name: '鉄の忍', color: '#5f6b7a', accent: '#c9d3df', eye: 'flat', symbol: 'iron', starter: true,
-    jutsu: 'teppeki', jutsuInfo: { name: '鉄壁の術', desc: 'その問題はミスしても止まらない' },
+    jutsu: 'teppeki', jutsuInfo: { name: '鉄壁の術', desc: 'その問題を相手に取られても、相手に点が入らない' },
   },
   {
     id: 'kage', name: '影の忍', color: '#2a2838', accent: '#8f7bd6', eye: 'narrow', symbol: 'shadow', unlockLevel: 2,

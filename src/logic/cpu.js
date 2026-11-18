@@ -16,7 +16,7 @@ const MISS_PAUSE = [250, 500]; // ミスしたときに止まる時間（ミリ�
  * @param {string} romaji 打つつづり
  * @param {number} level 1〜5
  * @param {{reactScale?:number, noMissPause?:boolean, delay?:number}} opt 術の効果
- *   reactScale＝打ち始めるまでの時間の倍率（先読み）、noMissPause＝ミスで止まらない（鉄壁）、delay＝打ち始めがおそくなる（相手の術）
+ *   reactScale＝打ち始めるまでの時間の倍率（先読み）、noMissPause＝ミスで止まらない（いまは使っていない）、delay＝打ち始めがおそくなる（相手の術）
  * @returns {{times:number[], finishMs:number, misses:number}} times[i]＝i+1文字目を打ち終わる時刻
  */
 export function planCpu(romaji, level, rng = Math.random, opt = {}) {

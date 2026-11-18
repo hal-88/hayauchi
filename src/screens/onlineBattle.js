@@ -559,9 +559,12 @@ export function showOnlineBattle(el, go, { code }) {
     sendProgress(true);
     stage.insertAdjacentHTML('beforeend', `<div class="judging">はんてい中…</div>`);
     const ids = myEffIds(); // 刀狩り・封印で消えた術は入らない
-    const steal = ids.has('gyakuten') ? leaderToSteal(scoresOf(room), myUid, order()) : null;
+    // 鉄壁の術：ほかの人がこの問題で使っていたら、取っても点が入らない（逆転・達人もなし）
+    const walledBy = effNow().eff.find((a) => a.uid !== myUid && a.id === 'teppeki')?.uid || null;
+    const steal = !walledBy && ids.has('gyakuten') ? leaderToSteal(scoresOf(room), myUid, order()) : null;
     let pts = ids.has('bageki') ? 2 : 1; // 倍撃の術
     if (ids.has('kakushidama')) pts = kakushidamaPoints(); // 隠し玉の術：0〜3点
+    if (walledBy) pts = 0;
     // 手裏剣の術：2位（いちばん進んでいた人）の次の問題を1文字ふやす
     let shurikenTo = null;
     if (ids.has('shuriken')) {
@@ -569,13 +572,14 @@ export function showOnlineBattle(el, go, { code }) {
       shurikenTo = order().filter((u) => u !== myUid).sort((a, b) => (prog[b] || 0) - (prog[a] || 0))[0] || null;
     }
     // 達人の術：ノーミスで3問取るたびに +1点
-    const bonus = passiveOn() && myPassive === 'tatsujin' && roundMiss === 0 && (noMissWins + 1) % PASSIVE_RULES.tatsujinWins === 0 ? 1 : null;
+    const bonus = !walledBy && passiveOn() && myPassive === 'tatsujin' && roundMiss === 0 && (noMissWins + 1) % PASSIVE_RULES.tatsujinWins === 0 ? 1 : null;
     await db.claim(pathOf(code, `rounds/${roundKey(localRound)}/winner`), {
       uid: myUid,
       ms,
       at: db.now(),
       pts,
-      kd: ids.has('kakushidama') || null,
+      kd: (!walledBy && ids.has('kakushidama')) || null,
+      wall: walledBy, // 鉄壁の術を使っていた人
       steal, // 逆転の術：この人から1点うばう
       shurikenTo,
       bonus,
@@ -600,7 +604,7 @@ export function showOnlineBattle(el, go, { code }) {
     log.push({ text: word.text, uid: w.uid || null, ms: w.ms });
     const sec = w.ms != null ? `${(w.ms / 1000).toFixed(2)}秒` : '';
     const pts = w.pts ?? 1;
-    const extra = `${w.kd ? ` 隠し玉で${pts}点` : pts > 1 ? ` +${pts}点` : ''}${w.bonus ? ' 達人+1' : ''}${
+    const extra = `${w.wall ? `（${nameOf(w.wall)}の鉄壁で0点）` : w.kd ? ` 隠し玉で${pts}点` : pts > 1 ? ` +${pts}点` : ''}${w.bonus ? ' 達人+1' : ''}${
       w.steal ? `（${nameOf(w.steal)}から1点うばった）` : ''
     }${w.shurikenTo ? `（${nameOf(w.shurikenTo)}に手裏剣）` : ''}`;
     if (w.uid === myUid) {
@@ -618,7 +622,7 @@ export function showOnlineBattle(el, go, { code }) {
     if (w.uid === myUid) {
       winStreak++;
       lossStreak = 0;
-      if (passiveOn() && myPassive === 'tatsujin' && roundMiss === 0) noMissWins++;
+      if (passiveOn() && myPassive === 'tatsujin' && roundMiss === 0 && !w.wall) noMissWins++;
       if (passiveOn() && myPassive === 'rengeki' && winStreak % PASSIVE_RULES.rengekiWins === 0) rengekiNext = true;
     } else if (w.uid) {
       lossStreak++;
@@ -903,11 +907,10 @@ export function showOnlineBattle(el, go, { code }) {
       shake(card);
       const ids = myEffIds();
       if (ids.has('suketto')) keyHelp(card, matcher.rest[0]); // 助っ人の術：次のキーを光らせる
-      if (!ids.has('teppeki')) {
-        // 鉄壁の術なら止まらない。まきびしの術を受けていたら、最初のミスだけ長く止まる
-        const maki = !makibishiHit && myHitIds.has('makibishi');
-        if (maki) makibishiHit = true;
-        stopUntil = Math.max(stopUntil, missStop(card, maki ? NJ_RULES.makibishiMs : undefined));
+      // ふだんはミスしても止まらない。まきびしの術を受けていたら、最初のミスだけ0.5秒止まる
+      if (!makibishiHit && myHitIds.has('makibishi')) {
+        makibishiHit = true;
+        stopUntil = Math.max(stopUntil, missStop(card, NJ_RULES.makibishiMs));
       }
     }
   }

@@ -20,7 +20,6 @@ import {
   drawProgress,
   shake,
   setupShake,
-  missStop,
   timerBag,
 } from '../ui/typing.js';
 
@@ -77,7 +76,7 @@ export function showSixty(el, go, { start = false } = {}) {
           <p class="sixty-lead">60秒で いくつ ことばを打てるかな？</p>
           <ul class="sixty-rules">
             <li>打ち切ったら すぐ つぎのことば</li>
-            <li>ミスすると 0.3秒 止まる</li>
+            <li>まちがえても、すぐ打ちなおせる</li>
             <li>術は使えないよ。打つ速さだけで勝負！</li>
           </ul>
           <div class="my-best"><span>自己ベスト</span><b>${b ? `${b.words}<small>こ</small>` : '<small>まだなし</small>'}</b></div>
@@ -140,7 +139,6 @@ function playSixty(el, go) {
   let count = 0;
   let keys = 0;
   let miss = 0;
-  let stopUntil = 0;
   let raf = 0;
   let alive = true;
   const timers = timerBag();
@@ -270,7 +268,6 @@ function playSixty(el, go) {
     imeWarn.hidden = true;
     if (phase !== 'typing') return;
     e.preventDefault();
-    if (performance.now() < stopUntil) return;
     if (matcher.input(k.char)) {
       keys++;
       sfx.type();
@@ -282,7 +279,6 @@ function playSixty(el, go) {
       missEl.textContent = miss;
       sfx.miss();
       shake(card);
-      stopUntil = missStop(card);
     }
   }
 

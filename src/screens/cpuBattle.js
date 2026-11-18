@@ -34,7 +34,6 @@ import {
   stampHtml,
   shake,
   setupShake,
-  missStop,
   timerBag,
 } from '../ui/typing.js';
 
@@ -142,7 +141,7 @@ export function showCpuBattle(el, go, { level, target, foe }) {
   let cpuRomaji = '';
   let t0 = 0;
   let raf = 0;
-  let stopUntil = 0; // ミスやこおらせで打てない間
+  let stopUntil = 0; // こおらせで打てない間
   let myHits = []; // この問題で自分にかかった術
   let totalMiss = 0;
   let totalKeys = 0;
@@ -412,7 +411,6 @@ export function showCpuBattle(el, go, { level, target, foe }) {
     if (res.reflected.length) showJutsuBanner(card, me.name, '鏡の術', true, `【${jutsuOrNjName(res.reflected[0].id)}】をはね返した！`);
     plan = planCpu(cpuRomaji, level, Math.random, {
       reactScale: roundJ.cpu === 'sakiyomi' ? 0.25 : 1,
-      noMissPause: roundJ.cpu === 'teppeki',
       delay,
     });
     phase = 'typing';
@@ -479,9 +477,15 @@ export function showCpuBattle(el, go, { level, target, foe }) {
       pts = kakushidamaPoints(); // 隠し玉の術：0〜3点
       note = ` 隠し玉で${pts}点`;
     }
+    // 鉄壁の術：取られた側が使っていたら、取った側に点が入らない（逆転・達人もなし）
+    const walled = roundJ[other] === 'teppeki';
+    if (walled) {
+      pts = 0;
+      note = ' 鉄壁で0点';
+    }
     score[winner] += pts;
     let stole = false;
-    if (roundJ[winner] === 'gyakuten' && score[other] > 0) {
+    if (!walled && roundJ[winner] === 'gyakuten' && score[other] > 0) {
       score[other]--;
       stole = true;
     }
@@ -490,7 +494,7 @@ export function showCpuBattle(el, go, { level, target, foe }) {
     if (winner === 'me') {
       winStreak++;
       lossStreak = 0;
-      if (passive === 'tatsujin' && roundMiss === 0) {
+      if (passive === 'tatsujin' && roundMiss === 0 && !walled) {
         noMissWins++;
         if (noMissWins % PASSIVE_RULES.tatsujinWins === 0) {
           score.me += 1; // 達人：ノーミスで3問取るたびに +1点
@@ -689,7 +693,7 @@ export function showCpuBattle(el, go, { level, target, foe }) {
 
     e.preventDefault();
     if (phase === 'typing' && cpuAlreadyDone()) return;
-    if (performance.now() < stopUntil) return; // ミスのあと・こおらせの間は打てない
+    if (performance.now() < stopUntil) return; // こおらせの間は打てない（ミスしても止まらない）
     if (matcher.input(k.char)) {
       totalKeys++;
       sfx.type();
@@ -705,7 +709,6 @@ export function showCpuBattle(el, go, { level, target, foe }) {
       sfx.miss();
       shake(card);
       if (roundNj === 'suketto') keyHelp(card, matcher.rest[0]); // 助っ人の術：次のキーを光らせる
-      if (roundJ.me !== 'teppeki') stopUntil = missStop(card); // 鉄壁の術なら止まらない
     }
   }
 
