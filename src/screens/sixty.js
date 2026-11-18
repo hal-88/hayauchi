@@ -24,6 +24,7 @@ import {
 } from '../ui/typing.js';
 
 export const SIXTY_MS = 60000;
+export const MISS_PENALTY_MS = 500; // まちがえると のこり時間が0.5秒へる
 const READY_MS = 3000; // はじまる前の 3・2・1
 const RANK_SHOW = 10; // ランキングに出す人数
 
@@ -76,7 +77,7 @@ export function showSixty(el, go, { start = false } = {}) {
           <p class="sixty-lead">60秒で いくつ ことばを打てるかな？</p>
           <ul class="sixty-rules">
             <li>打ち切ったら すぐ つぎのことば</li>
-            <li>まちがえても、すぐ打ちなおせる</li>
+            <li>まちがえると、のこり時間が 0.5秒 へる</li>
             <li>術は使えないよ。打つ速さだけで勝負！</li>
           </ul>
           <div class="my-best"><span>自己ベスト</span><b>${b ? `${b.words}<small>こ</small>` : '<small>まだなし</small>'}</b></div>
@@ -139,6 +140,9 @@ function playSixty(el, go) {
   let count = 0;
   let keys = 0;
   let miss = 0;
+  let penalty = 0; // まちがえて へった時間
+  let endTimer = 0;
+  let playedMs = SIXTY_MS; // じっさいに打っていた時間
   let raf = 0;
   let alive = true;
   const timers = timerBag();
@@ -161,13 +165,20 @@ function playSixty(el, go) {
     openScroll(card);
     sfx.scroll();
     t0 = performance.now();
-    timers.later(finish, SIXTY_MS); // 終わりはタイマーで決める（画面の描きかえが止まってもずれない）
+    scheduleEnd(); // 終わりはタイマーで決める（画面の描きかえが止まってもずれない）
     tick();
+  }
+
+  // のこり時間（まちがえた分だけへる）
+  const leftMs = () => Math.max(0, SIXTY_MS - penalty - (performance.now() - t0));
+  function scheduleEnd() {
+    clearTimeout(endTimer);
+    endTimer = setTimeout(finish, leftMs());
   }
 
   function tick() {
     if (phase !== 'typing') return;
-    const left = Math.max(0, SIXTY_MS - (performance.now() - t0));
+    const left = leftMs();
     leftEl.textContent = (left / 1000).toFixed(1);
     $('.timer').classList.toggle('hurry', left <= 10000);
     raf = requestAnimationFrame(tick);
@@ -187,6 +198,8 @@ function playSixty(el, go) {
   function finish() {
     if (phase !== 'typing') return;
     phase = 'result';
+    clearTimeout(endTimer);
+    playedMs = performance.now() - t0;
     cancelAnimationFrame(raf);
     sfx.finish();
     showResult();
@@ -196,7 +209,7 @@ function playSixty(el, go) {
     const prev = getSave().sixty.best;
     const isBest = recordSixty(count, keys);
     const acc = keys + miss ? Math.round((keys / (keys + miss)) * 100) : 100;
-    const kps = (keys / (SIXTY_MS / 1000)).toFixed(1);
+    const kps = (keys / Math.max(1, playedMs / 1000)).toFixed(1);
     el.innerHTML = `
       <section class="sixty panel-page result">
         <div class="sixty-body">
@@ -279,6 +292,13 @@ function playSixty(el, go) {
       missEl.textContent = miss;
       sfx.miss();
       shake(card);
+      // のこり時間が0.5秒へる
+      penalty += MISS_PENALTY_MS;
+      const pill = $('.timer');
+      pill.querySelector('.minus')?.remove();
+      pill.insertAdjacentHTML('beforeend', `<span class="minus">-${MISS_PENALTY_MS / 1000}</span>`);
+      leftEl.textContent = (leftMs() / 1000).toFixed(1);
+      scheduleEnd();
     }
   }
 
@@ -296,6 +316,7 @@ function playSixty(el, go) {
     alive = false;
     window.removeEventListener('keydown', onKey);
     cancelAnimationFrame(raf);
+    clearTimeout(endTimer);
     timers.clear();
   };
 }

@@ -3139,3 +3139,22 @@ svg.flip {
   font-size: 14px;
   gap: 6px;
 }
+
+/* 60秒チャレンジ：まちがえたら のこり時間 -0.5 */
+.pill.timer {
+  position: relative;
+}
+.pill.timer .minus {
+  position: absolute;
+  right: -6px;
+  top: -14px;
+  color: var(--shu);
+  font-weight: 800;
+  font-size: 18px;
+  pointer-events: none;
+  animation: minus-up 0.8s ease-out forwards;
+}
+@keyframes minus-up {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-16px); }
+}
