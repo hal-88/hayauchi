@@ -3158,3 +3158,79 @@ svg.flip {
   from { opacity: 1; transform: translateY(0); }
   to { opacity: 0; transform: translateY(-16px); }
 }
+
+/* ---- スタンプ（カウントダウン中に F〜L） ---- */
+.card .stamp-bar {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  z-index: 6;
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.card.closed .stamp-bar {
+  opacity: 1;
+}
+.stamp-bar span {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+  background: rgba(255, 250, 240, 0.94);
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 9px 2px 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.stamp-bar kbd {
+  font-size: 11px;
+  min-width: 20px;
+  padding: 1px 4px;
+}
+.stamp-bubble {
+  position: fixed;
+  z-index: 60;
+  transform: translate(-50%, 10px);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  background: #fff;
+  border: 2.5px solid var(--shu);
+  border-radius: 16px;
+  padding: 6px 14px;
+  font-size: clamp(16px, 2.8vh, 20px);
+  font-weight: 800;
+  color: var(--ink);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+  animation: stamp-pop 2.2s ease-out forwards;
+}
+.stamp-bubble::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -9px;
+  transform: translateX(-50%) rotate(45deg);
+  width: 14px;
+  height: 14px;
+  background: #fff;
+  border-left: 2.5px solid var(--shu);
+  border-top: 2.5px solid var(--shu);
+}
+.sb-icon {
+  font-size: 1.3em;
+}
+@keyframes stamp-pop {
+  0% { opacity: 0; transform: translate(-50%, 10px) scale(0.5); }
+  10% { opacity: 1; transform: translate(-50%, 10px) scale(1.12); }
+  18% { transform: translate(-50%, 10px) scale(1); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, 4px) scale(1); }
+}

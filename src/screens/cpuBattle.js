@@ -17,6 +17,7 @@ import { spawnAt } from '../ui/effects.js';
 import { ninjaSvg } from '../ui/ninjaSvg.js';
 import { scrollGainHtml } from '../ui/scrollUi.js';
 import { jutsuChipHtml, showJutsuBanner, blurFor, freezeFor, hideKana, jutsuHintHtml, drawJutsuHint, nudgeHint, flashCard, keyHelp, showYokoku, clearYokoku } from '../ui/jutsuUi.js';
+import { STAMP_COOLDOWN_MS, stampIndexOf, stampBarHtml, showStamp, clearStamps } from '../ui/stamps.js';
 import { showTitle } from './title.js';
 import { showCpuSetup } from './cpuSetup.js';
 import { itemThumb } from './kura.js';
@@ -102,6 +103,22 @@ export function showCpuBattle(el, go, { level, target, foe }) {
   const hintEl = $('.jh-ninja');
   const njHintEl = $('.jh-nj');
   setupShake(card);
+  card.insertAdjacentHTML('beforeend', stampBarHtml()); // カウントダウン中に出るスタンプの案内
+  // スタンプ：カウントダウン中に F〜L。CPU もときどき返してくる
+  let stampAt = 0;
+  const CPU_REPLY = [0, 1, 1, 5, 5, 3]; // よろしく→よろしく、負けないぞ・いくぞ→負けないぞ、すごい・ドンマイ→ありがとう、ありがとう→すごい
+  function sendStamp(i) {
+    const now = performance.now();
+    if (now - stampAt < STAMP_COOLDOWN_MS) return;
+    stampAt = now;
+    showStamp($('.side.me .avatar'), i, 'me');
+    sfx.click();
+    if (Math.random() < 0.5) {
+      timers.later(() => {
+        if (phase === 'countdown') showStamp($('.side.cpu .avatar'), CPU_REPLY[i], 'cpu');
+      }, 600 + Math.random() * 700);
+    }
+  }
 
   const deck = [];
   const nextWord = () => {
@@ -671,6 +688,12 @@ export function showCpuBattle(el, go, { level, target, foe }) {
       return;
     }
     // 忍者の術：X キー（カウントダウン中だけ。打っている間の x はふつうに文字として打つ）。スペースでも出る
+    const si = stampIndexOf(e);
+    if (si >= 0 && phase === 'countdown') {
+      e.preventDefault();
+      sendStamp(si);
+      return;
+    }
     const isX = (e.key === 'x' || e.key === 'X') && !e.ctrlKey && !e.metaKey && !e.altKey;
     if (e.key === ' ' || (isX && phase !== 'typing' && phase !== 'nidan')) {
       e.preventDefault();
@@ -718,6 +741,7 @@ export function showCpuBattle(el, go, { level, target, foe }) {
 
   return () => {
     window.removeEventListener('keydown', onKey);
+    clearStamps();
     cancelAnimationFrame(raf);
     timers.clear();
   };

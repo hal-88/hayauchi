@@ -74,6 +74,12 @@
               ".write": "auth != null && !data.exists() && root.child('rooms/' + $code + '/members/' + auth.uid).exists()",
               ".validate": "newData.child('uid').val() === auth.uid && newData.child('pts').val() === 1"
             },
+            "stamp": {
+              "$uid": {
+                ".write": "auth != null && auth.uid === $uid && root.child('rooms/' + $code + '/members/' + auth.uid).exists()",
+                ".validate": "newData.hasChildren(['s', 'at']) && newData.child('s').isNumber() && newData.child('s').val() >= 0 && newData.child('s').val() <= 5 && newData.child('at').isNumber()"
+              }
+            },
             "prog": {
               "$uid": {
                 ".write": "auth != null && auth.uid === $uid && root.child('rooms/' + $code + '/members/' + auth.uid).exists()",

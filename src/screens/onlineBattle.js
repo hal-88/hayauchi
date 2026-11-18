@@ -19,6 +19,7 @@ import { scrollGainHtml } from '../ui/scrollUi.js';
 import { sfx } from '../audio/sfx.js';
 import { spawnAt } from '../ui/effects.js';
 import { ninjaSvg } from '../ui/ninjaSvg.js';
+import { STAMP_COOLDOWN_MS, stampIndexOf, stampBarHtml, showStamp, clearStamps } from '../ui/stamps.js';
 import { showTitle } from './title.js';
 import { showOnlineMenu } from './online.js';
 import { BATTLE_COUNTDOWN_MS as COUNTDOWN_MS } from './solo.js';
@@ -58,6 +59,9 @@ export function showOnlineBattle(el, go, { code }) {
   const hintEl = $('.jh-ninja');
   const njHintEl = $('.jh-nj');
   setupShake(card);
+  card.insertAdjacentHTML('beforeend', stampBarHtml()); // カウントダウン中に出るスタンプの案内
+  const stampSeen = new Map(); // だれ → 最後に出したスタンプの時刻
+  let stampAt = 0;
 
   const eq = getEquip();
   let db = null;
@@ -174,7 +178,7 @@ export function showOnlineBattle(el, go, { code }) {
         const pts = scores[uid] || 0;
         const gone = !m.online || m.left;
         const left = ninjaLimit(uid) - ninjaUses(uid);
-        return `<div class="pl ${uid === myUid ? 'me' : ''} ${gone ? 'off' : ''}">
+        return `<div class="pl ${uid === myUid ? 'me' : ''} ${gone ? 'off' : ''}" data-uid="${esc(uid)}">
           ${ninjaSvg(m.ninja, { color: m.color, costume: m.costume, cls: 'avatar' })}
           <div class="pl-info">
             <div class="pl-name">${jutsuChipHtml(m.ninja, left <= 0)}${ninjaLimit(uid) > 1 && left > 0 ? `<small>×${left}</small>` : ''}${
@@ -847,6 +851,17 @@ export function showOnlineBattle(el, go, { code }) {
     }
     if (g && rr?.winner && !roundEnded && localRound === g.round) onWinner(rr.winner);
     if (g && rr?.second && localRound === g.round) onSecond(rr.second);
+    // スタンプ：この問題で新しく届いたもの
+    if (g && localRound === g.round && rr?.stamp) {
+      for (const [uid, st] of Object.entries(rr.stamp)) {
+        if (stampSeen.get(uid) === st.at) continue;
+        stampSeen.set(uid, st.at);
+        if (uid !== myUid) {
+          showStamp(el.querySelector(`.pl[data-uid="${uid}"] .avatar`), st.s, uid);
+          sfx.click();
+        }
+      }
+    }
     drawRivals(rr?.prog);
     drawHint();
 
@@ -858,6 +873,18 @@ export function showOnlineBattle(el, go, { code }) {
       roundTimers.later(() => showResult(snapshot, over), over === 'alone' ? 300 : ONLINE.roundEndMs);
     }
     hostDuties();
+  }
+
+  // ---------- スタンプ（カウントダウン中に F〜L） ----------
+  function sendStamp(i) {
+    const now = performance.now();
+    if (!db || now - stampAt < STAMP_COOLDOWN_MS) return;
+    stampAt = now;
+    const at = db.now();
+    stampSeen.set(myUid, at); // 自分のはすぐ出す（届いたときに2回出さない）
+    showStamp(el.querySelector(`.pl[data-uid="${myUid}"] .avatar`), i, myUid);
+    sfx.click();
+    Promise.resolve(db.set(pathOf(code, `rounds/${roundKey(localRound)}/stamp/${myUid}`), { s: i, at })).catch(() => {});
   }
 
   // ---------- キー入力 ----------
@@ -872,6 +899,12 @@ export function showOnlineBattle(el, go, { code }) {
       return;
     }
     // 忍者の術：X キー（カウントダウン中だけ。打っている間の x はふつうに文字として打つ）。スペースでも出る
+    const si = stampIndexOf(e);
+    if (si >= 0 && phase === 'countdown') {
+      e.preventDefault();
+      sendStamp(si);
+      return;
+    }
     const isX = (e.key === 'x' || e.key === 'X') && !e.ctrlKey && !e.metaKey && !e.altKey;
     if (e.key === ' ' || (isX && phase !== 'typing' && phase !== 'nidan')) {
       e.preventDefault();
@@ -934,6 +967,7 @@ export function showOnlineBattle(el, go, { code }) {
 
   return () => {
     window.removeEventListener('keydown', onKey);
+    clearStamps();
     roundTimers.clear();
     clearTimeout(progTimer);
     const wasHost = room && effectiveHost(room) === myUid;
