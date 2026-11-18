@@ -17,6 +17,7 @@ function fresh() {
     equip: { color: 'base', costume: 'none', bg: 'yoru', sound: 'pop', effect: 'spark' },
     cpu: { wins: {}, losses: {} },
     solo: { bestMs: null },
+    sixty: { best: null }, // 60秒チャレンジの自己ベスト { words, keys }
   };
 }
 
@@ -31,6 +32,7 @@ try {
       equip: { ...f.equip, ...raw.equip },
       cpu: { wins: { ...raw.cpu?.wins }, losses: { ...raw.cpu?.losses } },
       solo: { ...f.solo, ...raw.solo },
+      sixty: { ...f.sixty, ...raw.sixty },
       ninjas: [...new Set([...f.ninjas, ...(raw.ninjas || [])])],
       items: [...new Set([...f.items, ...(raw.items || [])])],
       ninjutsu: [...new Set([...f.ninjutsu, ...(raw.ninjutsu || [])])],
@@ -160,6 +162,15 @@ export function recordCpuMatch(level, win, rng = Math.random) {
 }
 
 /** 1人でしゅぎょうの自己ベスト。更新したら true */
+/** 60秒チャレンジの記録。自己ベストならtrue */
+export function recordSixty(words, keys) {
+  const b = data.sixty.best;
+  const isBest = !b || words > b.words || (words === b.words && keys > b.keys);
+  if (isBest) data.sixty.best = { words, keys };
+  persist();
+  return isBest;
+}
+
 export function recordSolo(totalMs) {
   const best = data.solo.bestMs;
   const isBest = best === null || totalMs < best;

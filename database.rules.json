@@ -2,6 +2,24 @@
   "rules": {
     ".read": false,
     ".write": false,
+    "ranking": {
+      "sixty": {
+        ".read": "auth != null",
+        "$key": {
+          ".write": "auth != null && $key.beginsWith(auth.uid + '_') && $key.length <= 160",
+          ".validate": "newData.hasChildren(['name', 'ninja', 'words', 'keys', 'at']) && (!data.exists() || newData.child('words').val() > data.child('words').val() || (newData.child('words').val() === data.child('words').val() && newData.child('keys').val() > data.child('keys').val()))",
+          "name": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 8" },
+          "ninja": { ".validate": "newData.isString() && newData.val().length <= 20" },
+          "color": { ".validate": "newData.isString() && newData.val().length <= 20" },
+          "costume": { ".validate": "newData.isString() && newData.val().length <= 20" },
+          "words": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 150" },
+          "keys": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000" },
+          "miss": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 3000" },
+          "at": { ".validate": "newData.isNumber() && newData.val() <= now + 60000" },
+          "$other": { ".validate": false }
+        }
+      }
+    },
     "rooms": {
       "$code": {
         ".read": "auth != null",
