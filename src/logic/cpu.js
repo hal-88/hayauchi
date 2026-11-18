@@ -3,11 +3,11 @@
 
 // kps＝1秒に打つ数、react＝打ち始めるまで、miss＝1キーごとにミスして止まる確率
 export const CPU_LEVELS = [
-  { level: 1, name: 'のんびり', kps: 1.6, react: 1100, miss: 0.1 },
-  { level: 2, name: 'ふつう', kps: 2.4, react: 900, miss: 0.07 },
-  { level: 3, name: 'はやい', kps: 3.3, react: 750, miss: 0.05 },
-  { level: 4, name: 'すごい', kps: 4.5, react: 600, miss: 0.03 },
-  { level: 5, name: 'マスター', kps: 6.0, react: 450, miss: 0.015 },
+  { level: 1, name: 'のんびり', kps: 0.9, react: 1500, miss: 0.12 },
+  { level: 2, name: 'ふつう', kps: 1.4, react: 1200, miss: 0.08 },
+  { level: 3, name: 'はやい', kps: 2.3, react: 950, miss: 0.06 },
+  { level: 4, name: 'すごい', kps: 3.4, react: 750, miss: 0.04 },
+  { level: 5, name: 'マスター', kps: 5.0, react: 550, miss: 0.02 },
 ];
 
 const MISS_PAUSE = [250, 500]; // ミスしたときに止まる時間（ミリ秒）
