@@ -28,14 +28,14 @@ export const SIXTY_MS = 60000;
 const READY_MS = 3000; // はじまる前の 3・2・1
 const RANK_SHOW = 10; // ランキングに出す人数
 
-/** ランキングの表（上から10人。自分が10位より下なら、下に自分の行もつける） */
+/** ランキングの表（上から10人。自分が10位より下なら、下に自分の行もつける）。名前が見えるのは自分だけ（ほかの人は ？？？） */
 function rankHtml(list) {
   if (!list.length) return '<p class="rank-empty">まだだれも記録がないよ。1番乗りしよう！</p>';
   const row = (r, i) => `
     <li class="rk ${r.mine ? 'me' : ''} ${i < 3 ? `top${i + 1}` : ''}">
       <span class="rk-no">${i + 1}</span>
       ${ninjaSvg(r.ninja, { color: r.color, costume: r.costume, cls: 'rk-ninja' })}
-      <b class="rk-name">${esc(r.name)}</b>
+      <b class="rk-name">${r.mine ? esc(r.name) : '？？？'}</b>
       <span class="rk-w">${r.words}<small>こ</small></span>
     </li>`;
   const top = list.slice(0, RANK_SHOW).map(row).join('');
