@@ -3234,3 +3234,80 @@ svg.flip {
   80% { opacity: 1; }
   100% { opacity: 0; transform: translate(-50%, 4px) scale(1); }
 }
+
+/* ---- 結果画面を1画面にそろえる：まん中に結果、ボタンはいつも一番下 ---- */
+.result.panel-page {
+  justify-content: flex-start;
+  gap: clamp(6px, 1.2vh, 12px);
+  overflow: hidden;
+}
+.result .result-grid,
+.result .sixty-body {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  align-items: stretch;
+}
+.result .result-left,
+.result .result-right {
+  justify-content: center;
+  min-height: 0;
+  overflow: hidden;
+}
+.result .log-grid {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  align-content: start;
+}
+.result-foot {
+  flex: none;
+  width: 100%;
+  margin: 0;
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  gap: 10px;
+  padding-top: clamp(6px, 1.2vh, 10px);
+  border-top: 2px dashed var(--line);
+}
+.result-foot .btn {
+  font-size: 15px;
+  padding: 10px 16px;
+  white-space: nowrap;
+}
+.share-btn {
+  background: #fff7e2;
+  border-color: var(--gold);
+}
+
+/* シェアできないときの画面 */
+.share-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  background: rgba(10, 14, 30, 0.7);
+}
+.share-box {
+  width: min(92vw, 760px);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.share-box img {
+  width: 100%;
+  max-height: 62vh;
+  object-fit: contain;
+  border-radius: 12px;
+}
+.share-box p {
+  margin: 0;
+  white-space: pre-line;
+  text-align: center;
+  font-weight: 700;
+  font-size: 14px;
+}

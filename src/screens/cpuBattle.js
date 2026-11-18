@@ -18,6 +18,7 @@ import { ninjaSvg } from '../ui/ninjaSvg.js';
 import { scrollGainHtml } from '../ui/scrollUi.js';
 import { jutsuChipHtml, showJutsuBanner, blurFor, freezeFor, hideKana, jutsuHintHtml, drawJutsuHint, nudgeHint, flashCard, keyHelp, showYokoku, clearYokoku } from '../ui/jutsuUi.js';
 import { STAMP_COOLDOWN_MS, stampIndexOf, stampBarHtml, showStamp, clearStamps } from '../ui/stamps.js';
+import { shareButtonHtml, setupShare, closeSharePanel } from '../ui/share.js';
 import { showTitle } from './title.js';
 import { showCpuSetup } from './cpuSetup.js';
 import { itemThumb } from './kura.js';
@@ -596,6 +597,7 @@ export function showCpuBattle(el, go, { level, target, foe }) {
     return `<div class="reward panel"><div class="reward-head">ごほうびは ぜんぶ集めた！</div></div>`;
   }
 
+  let shareFn = null;
   function showResult() {
     phase = 'result';
     const win = score.me > score.cpu;
@@ -644,16 +646,32 @@ export function showCpuBattle(el, go, { level, target, foe }) {
                 )
                 .join('')}
             </div>
-            <div class="buttons">
-              ${canUp ? `<button class="btn primary" type="button" data-act="up">Lv${level + 1} にちょうせん</button>` : ''}
-              <button class="btn ${canUp ? '' : 'primary'}" type="button" data-act="again">もう一回 <kbd>Enter</kbd></button>
-              <button class="btn" type="button" data-act="setup">レベルをえらぶ</button>
-              <button class="btn" type="button" data-act="title">タイトルへ</button>
-            </div>
           </div>
+        </div>
+        <div class="buttons result-foot">
+          ${canUp ? `<button class="btn primary" type="button" data-act="up">Lv${level + 1} にちょうせん</button>` : ''}
+          <button class="btn ${canUp ? '' : 'primary'}" type="button" data-act="again">もう一回 <kbd>Enter</kbd></button>
+          <button class="btn" type="button" data-act="setup">レベルをえらぶ</button>
+          ${shareButtonHtml()}
+          <button class="btn" type="button" data-act="title">タイトルへ</button>
         </div>
       </section>
     `;
+    shareFn = setupShare(
+      el,
+      {
+        mode: `CPUとたいせん Lv${level}`,
+        headline: win ? '勝ち！' : '負け…',
+        sub: `${score.me} - ${score.cpu}（${target}点先取）`,
+        lines: [`あいて：${foeNinja.name}`, `${avg === null ? '' : `取った問題の平均 ${avg.toFixed(2)}秒・`}正確さ ${acc}%`],
+        name: me.name,
+        ninja: me.ninja,
+        color: eq.color,
+        costume: eq.costume,
+        win,
+      },
+      `はやうち忍者で CPU Lv${level} に ${score.me}-${score.cpu} で${win ? '勝った！' : '負けた…'}`
+    );
     const on = (act, fn) => el.querySelector(`[data-act="${act}"]`)?.addEventListener('click', fn);
     on('again', () => go(showCpuBattle, { level, target, foe: foeNinja.id }));
     on('setup', () => go(showCpuSetup));
@@ -681,6 +699,11 @@ export function showCpuBattle(el, go, { level, target, foe }) {
       return;
     }
     if (phase === 'result') {
+      if (e.key === 's' || e.key === 'S') {
+        e.preventDefault();
+        shareFn?.();
+        return;
+      }
       if (e.key === 'Enter') {
         e.preventDefault();
         go(showCpuBattle, { level, target, foe: foeNinja.id });
@@ -742,6 +765,7 @@ export function showCpuBattle(el, go, { level, target, foe }) {
   return () => {
     window.removeEventListener('keydown', onKey);
     clearStamps();
+    closeSharePanel();
     cancelAnimationFrame(raf);
     timers.clear();
   };

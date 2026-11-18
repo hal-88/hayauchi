@@ -2,8 +2,9 @@
 import { RomajiMatcher } from '../logic/romaji.js';
 import { pickWords } from '../data/words.js';
 import { sfx } from '../audio/sfx.js';
-import { getEquip, getSave, recordSolo } from '../progress/save.js';
+import { getEquip, getProfile, getSave, recordSolo } from '../progress/save.js';
 import { spawnAt } from '../ui/effects.js';
+import { shareButtonHtml, setupShare, closeSharePanel } from '../ui/share.js';
 import { showTitle } from './title.js';
 import {
   esc,
@@ -117,6 +118,7 @@ export function showSolo(el, go) {
     timers.later(nextRound, AFTER_CLEAR_MS);
   }
 
+  let shareFn = null;
   function showResult() {
     phase = 'result';
     sfx.finish();
@@ -152,16 +154,33 @@ export function showSolo(el, go) {
                 )
                 .join('')}
             </div>
-            <div class="buttons">
-              <button class="btn primary" type="button" data-act="again">もう一回 <kbd>Enter</kbd></button>
-              <button class="btn" type="button" data-act="title">タイトルへ</button>
-            </div>
           </div>
+        </div>
+        <div class="buttons result-foot">
+          <button class="btn primary" type="button" data-act="again">もう一回 <kbd>Enter</kbd></button>
+          ${shareButtonHtml()}
+          <button class="btn" type="button" data-act="title">タイトルへ</button>
         </div>
       </section>
     `;
     el.querySelector('[data-act="again"]').addEventListener('click', () => go(showSolo));
     el.querySelector('[data-act="title"]').addEventListener('click', () => go(showTitle));
+    const p = getProfile();
+    const eq = getEquip();
+    shareFn = setupShare(
+      el,
+      {
+        mode: 'ひとりでしゅぎょう',
+        headline: `${(totalMs / 1000).toFixed(2)}秒`,
+        sub: isBest ? '自己ベスト更新！' : '10問の合計タイム',
+        lines: [`1秒に${kps}回・ミス${totalMiss}回・正確さ ${acc}%`],
+        name: p.name,
+        ninja: p.ninja,
+        color: eq.color,
+        costume: eq.costume,
+      },
+      `はやうち忍者の ひとりでしゅぎょう 10問を ${(totalMs / 1000).toFixed(2)}秒で クリア！${isBest ? '（自己ベスト）' : ''}`
+    );
   }
 
   function onKey(e) {
@@ -171,6 +190,11 @@ export function showSolo(el, go) {
       return;
     }
     if (phase === 'result') {
+      if (e.key === 's' || e.key === 'S') {
+        e.preventDefault();
+        shareFn?.();
+        return;
+      }
       if (e.key === 'Enter') {
         e.preventDefault();
         go(showSolo);
@@ -204,6 +228,7 @@ export function showSolo(el, go) {
 
   return () => {
     window.removeEventListener('keydown', onKey);
+    closeSharePanel();
     cancelAnimationFrame(raf);
     timers.clear();
   };

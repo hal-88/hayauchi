@@ -14,12 +14,13 @@ import { getNinjutsu } from '../data/ninjutsu.js';
 import { pickWords, WORDS } from '../data/words.js';
 import { ONLINE } from '../online/config.js';
 import { getDb, watchRoom, leaveRoom, sortedMembers, activeMembers, effectiveHost, scoresOf, pathOf } from '../online/room.js';
-import { getEquip, recordOnlineMatch, getMyNinjutsu } from '../progress/save.js';
+import { getEquip, getProfile, recordOnlineMatch, getMyNinjutsu } from '../progress/save.js';
 import { scrollGainHtml } from '../ui/scrollUi.js';
 import { sfx } from '../audio/sfx.js';
 import { spawnAt } from '../ui/effects.js';
 import { ninjaSvg } from '../ui/ninjaSvg.js';
 import { STAMP_COOLDOWN_MS, stampIndexOf, stampBarHtml, showStamp, clearStamps } from '../ui/stamps.js';
+import { shareButtonHtml, setupShare, closeSharePanel } from '../ui/share.js';
 import { showTitle } from './title.js';
 import { showOnlineMenu } from './online.js';
 import { BATTLE_COUNTDOWN_MS as COUNTDOWN_MS } from './solo.js';
@@ -683,6 +684,7 @@ export function showOnlineBattle(el, go, { code }) {
     return null;
   }
 
+  let shareFn = null;
   function showResult(snapshot, reason) {
     phase = 'over';
     roundTimers.clear();
@@ -740,16 +742,33 @@ export function showOnlineBattle(el, go, { code }) {
                 )
                 .join('')}
             </div>
-            <div class="buttons">
-              <button class="btn primary" type="button" data-act="online">みんなでたいせんへ <kbd>Enter</kbd></button>
-              <button class="btn" type="button" data-act="title">タイトルへ</button>
-            </div>
           </div>
+        </div>
+        <div class="buttons result-foot">
+          <button class="btn primary" type="button" data-act="online">みんなでたいせんへ <kbd>Enter</kbd></button>
+          ${shareButtonHtml()}
+          <button class="btn" type="button" data-act="title">タイトルへ</button>
         </div>
       </section>
     `;
     el.querySelector('[data-act="online"]').addEventListener('click', () => go(showOnlineMenu));
     el.querySelector('[data-act="title"]').addEventListener('click', () => go(showTitle));
+    const myM = snapshot.members?.[myUid] || getProfile();
+    shareFn = setupShare(
+      el,
+      {
+        mode: `みんなでたいせん ${ranked.length}人`,
+        headline: `${myRank}位${myRank === 1 ? '！' : ''}`,
+        sub: `${me?.pts ?? 0}点（${snapshot.meta?.target ?? ''}点先取）`,
+        lines: [`取った問題 ${mine.length}問・正確さ ${acc}%`],
+        name: myM.name,
+        ninja: myM.ninja,
+        color: myM.color || eq.color,
+        costume: myM.costume || eq.costume,
+        win: myRank === 1,
+      },
+      `はやうち忍者の みんなでたいせんで ${ranked.length}人中 ${myRank}位！`
+    );
   }
 
   function showGone() {
@@ -890,6 +909,11 @@ export function showOnlineBattle(el, go, { code }) {
   // ---------- キー入力 ----------
   function onKey(e) {
     if (phase === 'over') {
+      if (e.key === 's' || e.key === 'S') {
+        e.preventDefault();
+        shareFn?.();
+        return;
+      }
       if (e.key === 'Enter') go(showOnlineMenu);
       return;
     }
@@ -968,6 +992,7 @@ export function showOnlineBattle(el, go, { code }) {
   return () => {
     window.removeEventListener('keydown', onKey);
     clearStamps();
+    closeSharePanel();
     roundTimers.clear();
     clearTimeout(progTimer);
     const wasHost = room && effectiveHost(room) === myUid;
