@@ -3119,3 +3119,23 @@ svg.flip {
 .pill.count.pop {
   animation: pop 0.25s ease-out;
 }
+
+/* タイトルのメニュー：ボタンの文字を1行に（しゅぎょう・60秒チャレンジが2行にならないように） */
+.title-body {
+  grid-template-columns: 240px minmax(0, 420px);
+}
+.menu-row .btn {
+  white-space: nowrap;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+.menu-row .btn small {
+  font-size: 11px;
+}
+.menu-row {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+.menu-row .btn {
+  font-size: 14px;
+  gap: 6px;
+}

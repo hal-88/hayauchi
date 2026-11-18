@@ -49,7 +49,7 @@ export function showTitle(el, go) {
           <button class="btn" type="button" data-go="online"><kbd>2</kbd> みんなでたいせん <small>2〜4人</small></button>
           <div class="menu-row">
             <button class="btn" type="button" data-go="solo"><kbd>3</kbd> ひとりでしゅぎょう <small>10問</small></button>
-            <button class="btn" type="button" data-go="sixty"><kbd>4</kbd> 60秒チャレンジ <small>🏆</small></button>
+            <button class="btn" type="button" data-go="sixty"><kbd>4</kbd> 🏆 60秒チャレンジ</button>
           </div>
           <div class="menu-row">
             <button class="btn" type="button" data-go="ninja"><kbd>5</kbd> 忍者をえらぶ</button>
