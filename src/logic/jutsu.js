@@ -1,4 +1,4 @@
-// 忍者の術（1試合1回・カウントダウン中にスペース）。画面に依存しない決まりごと。
+// 忍者の術（1試合1回・カウントダウン中に X キー）。画面に依存しない決まりごと。
 import { NINJAS, getNinja } from '../data/ninjas.js';
 
 export const JUTSU_RULES = {

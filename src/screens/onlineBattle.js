@@ -2,7 +2,7 @@
 // ・ホストが「問題」と「巻物が開くサーバー時刻（showAt）」を決める → 全員がその時刻に開く
 // ・打ち切った人は rounds/r{n}/winner に早い者勝ちで書きこむ → サーバーが先に受けつけた1人だけが取れる
 // ・点数は winner を数えて、全員が同じように計算する
-// ・忍者の術：カウントダウン中にスペース → rounds/r{n}/jutsu/{uid} に書く → 全員の画面に「使った！」と効果
+// ・忍者の術：カウントダウン中に X キー → rounds/r{n}/jutsu/{uid} に書く → 全員の画面に「使った！」と効果
 // ・忍術（発動型）：カウントダウン中にエンター → rounds/r{n}/nj/{uid}。1問に使える術は1つまで（忍び足の術だけは別）
 // ・術どうしがぶつかったら先に押したほうが優先（clash.js）。効き目は巻物が開く直前（lock）に、全員の記録からまとめて決める
 import { RomajiMatcher } from '../logic/romaji.js';
@@ -48,7 +48,7 @@ export function showOnlineBattle(el, go, { code }) {
       ${SCROLL_HTML}
       <div class="rivals"></div>
       ${IME_WARN_HTML}
-      <div class="play-foot">${jutsuHintHtml('スペース', 'jh-ninja')}${jutsuHintHtml('エンター', 'jh-nj')}<button class="btn small" type="button" data-act="quit">やめる</button></div>
+      <div class="play-foot">${jutsuHintHtml('X', 'jh-ninja')}${jutsuHintHtml('エンター', 'jh-nj')}<button class="btn small" type="button" data-act="quit">やめる</button></div>
     </section>
   `;
   const $ = (s) => el.querySelector(s);
@@ -867,9 +867,11 @@ export function showOnlineBattle(el, go, { code }) {
       quit(); // やめる（部屋から出る）
       return;
     }
-    if (e.key === ' ') {
+    // 忍者の術：X キー（カウントダウン中だけ。打っている間の x はふつうに文字として打つ）。スペースでも出る
+    const isX = (e.key === 'x' || e.key === 'X') && !e.ctrlKey && !e.metaKey && !e.altKey;
+    if (e.key === ' ' || (isX && phase !== 'typing' && phase !== 'nidan')) {
       e.preventDefault();
-      if (!e.repeat) tryMyJutsu(); // 忍者の術はカウントダウン中にスペース
+      if (!e.repeat) tryMyJutsu();
       return;
     }
     if (e.key === 'Enter') {

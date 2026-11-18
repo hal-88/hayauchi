@@ -1,5 +1,5 @@
 // CPU戦：同じ言葉を同時に打ち、先に打ち切ったほうに1点。target 点先取で勝ち。
-// 忍者の術：カウントダウン中にスペースで1試合1回。CPUも自分の忍者の術をときどき使う。
+// 忍者の術：カウントダウン中に X キーで1試合1回。CPUも自分の忍者の術をときどき使う。
 // 忍術：カウントダウン中にエンター（発動型）。CPUは忍術を持たない。1問に使える術は1つまで（忍び足の術だけは別）。
 // 術どうしがぶつかったら先に押したほうが優先（clash.js）。常時型はセットしておくだけで効く。
 import { RomajiMatcher, toRomaji } from '../logic/romaji.js';
@@ -86,7 +86,7 @@ export function showCpuBattle(el, go, { level, target, foe }) {
         <div class="rival-typed"></div>
       </div>
       ${IME_WARN_HTML}
-      <div class="play-foot">${jutsuHintHtml('スペース', 'jh-ninja')}${jutsuHintHtml('エンター', 'jh-nj')}<button class="btn small" type="button" data-act="quit">やめる</button></div>
+      <div class="play-foot">${jutsuHintHtml('X', 'jh-ninja')}${jutsuHintHtml('エンター', 'jh-nj')}<button class="btn small" type="button" data-act="quit">やめる</button></div>
     </section>
   `;
   el.querySelector('[data-act="quit"]').addEventListener('click', () => go(showTitle));
@@ -666,7 +666,9 @@ export function showCpuBattle(el, go, { level, target, foe }) {
       }
       return;
     }
-    if (e.key === ' ') {
+    // 忍者の術：X キー（カウントダウン中だけ。打っている間の x はふつうに文字として打つ）。スペースでも出る
+    const isX = (e.key === 'x' || e.key === 'X') && !e.ctrlKey && !e.metaKey && !e.altKey;
+    if (e.key === ' ' || (isX && phase !== 'typing' && phase !== 'nidan')) {
       e.preventDefault();
       if (!e.repeat) tryMyJutsu();
       return;

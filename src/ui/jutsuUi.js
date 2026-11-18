@@ -47,8 +47,8 @@ export function hideKana(card, on) {
   card.classList.toggle('no-kana', on);
 }
 
-/** 自分の術の案内（カウントダウン中に光る）。忍者の術＝スペース、忍術＝エンター */
-export function jutsuHintHtml(key = 'スペース', cls = 'jh-ninja') {
+/** 自分の術の案内（カウントダウン中に光る）。忍者の術＝X、忍術＝エンター */
+export function jutsuHintHtml(key = 'X', cls = 'jh-ninja') {
   return `<div class="jutsu-hint ${cls}"><kbd>${key}</kbd><div class="jh-text"><div class="jh-top"><span class="jh-name"></span><small class="jh-note"></small></div><div class="jh-desc"></div></div></div>`;
 }
 
