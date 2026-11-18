@@ -7,7 +7,7 @@
 // ・術どうしがぶつかったら先に押したほうが優先（clash.js）。効き目は巻物が開く直前（lock）に、全員の記録からまとめて決める
 import { RomajiMatcher } from '../logic/romaji.js';
 import { JUTSU_RULES, jutsuOf, jutsuName, canUseJutsu, shortenKana, leaderToSteal } from '../logic/jutsu.js';
-import { jutsuChipHtml, showJutsuBanner, blurFor, freezeFor, hideKana, jutsuHintHtml, drawJutsuHint, flashCard, smokeFor, wobbleFor, flipFor, showFake, keyHelp, showYokoku, clearYokoku } from '../ui/jutsuUi.js';
+import { jutsuChipHtml, showJutsuBanner, blurFor, freezeFor, hideKana, jutsuHintHtml, drawJutsuHint, nudgeHint, flashCard, smokeFor, wobbleFor, flipFor, showFake, keyHelp, showYokoku, clearYokoku } from '../ui/jutsuUi.js';
 import { NJ_RULES, NJ_PASSIVE, PASSIVE_RULES, canUseNinjutsu, shoryakuKana, gozaruWord, extendWord, kakushidamaPoints, undameshiPick, kagenuiTargets, fakeWordFor, ninjaJutsuLimit, rengekiKana, kishikaiseiKana } from '../logic/ninjutsuRules.js';
 import { effectiveActs, resolveHits, passivesOn, lastOthersAct } from '../logic/clash.js';
 import { getNinjutsu } from '../data/ninjutsu.js';
@@ -440,7 +440,11 @@ export function showOnlineBattle(el, go, { code }) {
 
   async function tryMyJutsu() {
     const id = myJutsu();
-    if (!id || phase !== 'countdown' || ninjaUsedUp(myUid) || isSealed(myUid) || roundJ[myUid] || ninjaBlocked() || tooLate()) return;
+    if (!id) return;
+    if (isSealed(myUid)) return nudgeHint(hintEl, '封印された');
+    if (ninjaUsedUp(myUid)) return nudgeHint(hintEl, 'もう使った');
+    if (phase !== 'countdown' || tooLate()) return nudgeHint(hintEl, 'カウントダウン中に');
+    if (roundJ[myUid] || ninjaBlocked()) return nudgeHint(hintEl, '1問に1つまで');
     const [mine, best] = myScoreAndBest();
     if (!canUseJutsu(id, mine, best).ok) {
       sfx.miss();
@@ -453,7 +457,11 @@ export function showOnlineBattle(el, go, { code }) {
   }
 
   async function tryMyNinjutsu() {
-    if (phase !== 'countdown' || njUsedBy(myUid) || isSealed(myUid) || roundNj[myUid] || njBlocked() || tooLate()) return;
+    if (myPassive) return nudgeHint(njHintEl, 'セットするだけで効く');
+    if (isSealed(myUid)) return nudgeHint(njHintEl, '封印された');
+    if (njUsedBy(myUid)) return nudgeHint(njHintEl, 'もう使った');
+    if (phase !== 'countdown' || tooLate()) return nudgeHint(njHintEl, 'カウントダウン中に');
+    if (roundNj[myUid] || njBlocked()) return nudgeHint(njHintEl, '1問に1つまで');
     if (!canUseNinjutsu(myNj.id).ok) {
       sfx.miss();
       return;

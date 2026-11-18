@@ -58,9 +58,21 @@ export function jutsuHintHtml(key = 'スペース', cls = 'jh-ninja') {
  */
 export function drawJutsuHint(el, jutsuName, state, note = '') {
   el.querySelector('.jh-name').textContent = `【${jutsuName}】`;
-  el.querySelector('.jh-note').textContent = note || { ready: '今なら使える！', wait: '', used: '使った', blocked: '' }[state] || '';
+  el.querySelector('.jh-note').textContent = note || { ready: '今なら使える！', wait: 'カウントダウン中に', used: '使った', blocked: '' }[state] || '';
   el.querySelector('.jh-desc').textContent = DESC.get(jutsuName) || '';
   el.dataset.state = state;
+}
+
+/** 今は使えないときに押した → 案内をゆらして、わけを少しのあいだ出す */
+export function nudgeHint(el, note) {
+  if (!el) return;
+  const n = el.querySelector('.jh-note');
+  n.textContent = note;
+  el.classList.remove('nudge');
+  void el.offsetWidth;
+  el.classList.add('nudge');
+  clearTimeout(el._nudgeT);
+  el._nudgeT = setTimeout(() => el.classList.remove('nudge'), 500);
 }
 
 /** 術をはなった効果音の代わりのしるし（巻物をひかせる） */

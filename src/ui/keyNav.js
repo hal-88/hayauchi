@@ -53,8 +53,13 @@ export function setupKeyNav(screenEl) {
       if (e.isComposing || e.keyCode === 229) return; // 日本語入力の変換中は使わない
       const sec = screenEl.querySelector(':scope > section');
       const mode = sec?.dataset.nav || 'auto';
-      if (mode !== 'auto') return;
       const ae = document.activeElement;
+      if (mode === 'off') {
+        // 対戦中：ボタンや音量バーがえらばれたままだと、スペース・エンターがそちらに取られて術が出ない → 外す
+        if (ae && ae !== document.body && (e.key === ' ' || e.key === 'Enter' || e.key.startsWith('Arrow'))) ae.blur?.();
+        return;
+      }
+      if (mode !== 'auto') return;
       const inHeader = ae?.matches?.(HEADER);
       // 音量バーをえらんでいるときは ←→ で音量を変える（ふつうの動き）
       if (inHeader && ae.classList.contains('vol') && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) return;

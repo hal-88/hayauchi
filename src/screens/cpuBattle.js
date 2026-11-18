@@ -16,7 +16,7 @@ import { sfx } from '../audio/sfx.js';
 import { spawnAt } from '../ui/effects.js';
 import { ninjaSvg } from '../ui/ninjaSvg.js';
 import { scrollGainHtml } from '../ui/scrollUi.js';
-import { jutsuChipHtml, showJutsuBanner, blurFor, freezeFor, hideKana, jutsuHintHtml, drawJutsuHint, flashCard, keyHelp, showYokoku, clearYokoku } from '../ui/jutsuUi.js';
+import { jutsuChipHtml, showJutsuBanner, blurFor, freezeFor, hideKana, jutsuHintHtml, drawJutsuHint, nudgeHint, flashCard, keyHelp, showYokoku, clearYokoku } from '../ui/jutsuUi.js';
 import { showTitle } from './title.js';
 import { showCpuSetup } from './cpuSetup.js';
 import { itemThumb } from './kura.js';
@@ -232,7 +232,10 @@ export function showCpuBattle(el, go, { level, target, foe }) {
   }
 
   function tryMyJutsu() {
-    if (used.me || sealed.has('me') || phase !== 'countdown' || tooLate() || roundJ.me || ninjaBlocked()) return;
+    if (sealed.has('me')) return nudgeHint(hintEl, '封印された');
+    if (used.me) return nudgeHint(hintEl, 'もう使った');
+    if (phase !== 'countdown' || tooLate()) return nudgeHint(hintEl, 'カウントダウン中に');
+    if (roundJ.me || ninjaBlocked()) return nudgeHint(hintEl, '1問に1つまで');
     if (!canUseJutsu(jutsu.me, score.me, score.cpu).ok) {
       sfx.miss();
       return;
@@ -254,7 +257,11 @@ export function showCpuBattle(el, go, { level, target, foe }) {
 
   // ---------- 忍術（エンター） ----------
   function tryMyNinjutsu() {
-    if (njUsed || sealed.has('me') || phase !== 'countdown' || tooLate() || roundNj || njBlocked()) return;
+    if (passive) return nudgeHint(njHintEl, 'セットするだけで効く');
+    if (sealed.has('me')) return nudgeHint(njHintEl, '封印された');
+    if (njUsed) return nudgeHint(njHintEl, 'もう使った');
+    if (phase !== 'countdown' || tooLate()) return nudgeHint(njHintEl, 'カウントダウン中に');
+    if (roundNj || njBlocked()) return nudgeHint(njHintEl, '1問に1つまで');
     if (!canUseNinjutsu(myNj.id).ok) {
       sfx.miss();
       return;

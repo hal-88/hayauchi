@@ -2934,3 +2934,11 @@ svg.flip {
   padding: 0 5px;
   margin-right: 3px;
 }
+
+/* 今は使えないときに押した術の案内 */
+.jutsu-hint.nudge { animation: hint-nudge 0.4s ease; }
+@keyframes hint-nudge {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
