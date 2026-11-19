@@ -680,25 +680,33 @@ export function showOnlineBattle(el, go, { code }) {
     const scores = scoresOf(room);
     const max = Math.max(0, ...Object.values(scores));
     if (max >= room.meta.target) return 'target';
+    if (isGone(room.members?.[myUid])) return 'cut'; // 自分の通信がきれていた → 負けでおしまい
     if (activeMembers(room).length < ONLINE.minPlayers) return 'alone';
     return null;
   }
 
+  const isGone = (m) => !m || !m.online || m.left;
   let shareFn = null;
   function showResult(snapshot, reason) {
     phase = 'over';
     roundTimers.clear();
     const scores = scoresOf(snapshot);
     const members = sortedMembers(snapshot);
-    const ranked = members.map(([uid, m]) => ({ uid, m, pts: scores[uid] || 0 })).sort((a, b) => b.pts - a.pts);
+    // とちゅうでぬけた人・通信がきれた人は、点数があっても負け（順位なしで下にならべる）
+    const all = members.map(([uid, m]) => ({ uid, m, pts: scores[uid] || 0, gone: isGone(m) }));
+    const byPts = (a, b) => b.pts - a.pts;
+    const stay = all.filter((r) => !r.gone).sort(byPts);
+    const gone = all.filter((r) => r.gone).sort(byPts);
     // 同点は同じ順位
     let rank = 0;
-    ranked.forEach((r, i) => {
-      if (i === 0 || r.pts < ranked[i - 1].pts) rank = i + 1;
+    stay.forEach((r, i) => {
+      if (i === 0 || r.pts < stay[i - 1].pts) rank = i + 1;
       r.rank = rank;
     });
+    const ranked = [...stay, ...gone];
     const me = ranked.find((r) => r.uid === myUid);
-    const myRank = me?.rank || ranked.length;
+    const iGone = !me || me.gone;
+    const myRank = iGone ? ranked.length : me.rank;
     myRank === 1 ? sfx.finish() : sfx.matchLose();
     const scrolls = recordOnlineMatch(myRank);
     const mine = log.filter((l) => l.uid === myUid);
@@ -709,16 +717,22 @@ export function showOnlineBattle(el, go, { code }) {
       <section class="result panel-page">
         <div class="result-grid">
           <div class="result-left">
-            <div class="verdict ${myRank === 1 ? 'win' : 'lose'}">${myRank === 1 ? '1位！' : `${myRank}位`}</div>
-            ${reason === 'alone' ? '<p class="note">ほかの人がぬけたので、ここでおしまい</p>' : ''}
+            <div class="verdict ${myRank === 1 && !iGone ? 'win' : 'lose'}">${iGone ? '負け' : myRank === 1 ? '1位！' : `${myRank}位`}</div>
+            ${
+              iGone
+                ? '<p class="note">通信がきれたので、負けになったよ</p>'
+                : reason === 'alone'
+                  ? '<p class="note">ほかの人がぬけたので、ここでおしまい</p>'
+                  : ''
+            }
             ${scrollGainHtml(scrolls)}
             <ol class="ranking">
               ${ranked
                 .map(
-                  (r) => `<li class="${r.uid === myUid ? 'me' : ''}">
-                    <span class="rk">${r.rank}位</span>
+                  (r) => `<li class="${r.uid === myUid ? 'me' : ''} ${r.gone ? 'off' : ''}">
+                    <span class="rk">${r.gone ? '負け' : `${r.rank}位`}</span>
                     ${ninjaSvg(r.m.ninja, { color: r.m.color, costume: r.m.costume, cls: 'rk-ninja' })}
-                    <b>${esc(r.m.name)}</b>
+                    <b>${esc(r.m.name)}${r.gone ? ' <small>ぬけた</small>' : ''}</b>
                     <span class="rk-pts">${r.pts}点</span>
                   </li>`
                 )
@@ -758,16 +772,16 @@ export function showOnlineBattle(el, go, { code }) {
       el,
       {
         mode: `みんなでたいせん ${ranked.length}人`,
-        headline: `${myRank}位${myRank === 1 ? '！' : ''}`,
+        headline: iGone ? '負け…' : `${myRank}位${myRank === 1 ? '！' : ''}`,
         sub: `${me?.pts ?? 0}点（${snapshot.meta?.target ?? ''}点先取）`,
         lines: [`取った問題 ${mine.length}問・正確さ ${acc}%`],
         name: myM.name,
         ninja: myM.ninja,
         color: myM.color || eq.color,
         costume: myM.costume || eq.costume,
-        win: myRank === 1,
+        win: myRank === 1 && !iGone,
       },
-      `はやうち忍者の みんなでたいせんで ${ranked.length}人中 ${myRank}位！`
+      iGone ? `はやうち忍者の みんなでたいせんに ${ranked.length}人で ちょうせん！` : `はやうち忍者の みんなでたいせんで ${ranked.length}人中 ${myRank}位！`
     );
   }
 
@@ -889,7 +903,7 @@ export function showOnlineBattle(el, go, { code }) {
       overShown = true;
       db.cancelOnDisconnect(); // 部屋はこのあと消えるので、切れたときの書きこみはもういらない
       const snapshot = JSON.parse(JSON.stringify(r));
-      roundTimers.later(() => showResult(snapshot, over), over === 'alone' ? 300 : ONLINE.roundEndMs);
+      roundTimers.later(() => showResult(snapshot, over), over === 'target' ? ONLINE.roundEndMs : 300);
     }
     hostDuties();
   }
