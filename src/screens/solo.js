@@ -23,7 +23,7 @@ import {
 
 const QUESTIONS = 10;
 export const COUNTDOWN_MS = 3000; // ひとりでしゅぎょうのカウントダウン
-export const BATTLE_COUNTDOWN_MS = 5000; // みんなで対戦のカウントダウン（術を使えるのはこの間）
+export const BATTLE_COUNTDOWN_MS = 3000; // みんなで対戦のカウントダウン（術を使えるのはこの間）
 export const CPU_COUNTDOWN_MS = 3000; // CPU戦のカウントダウン（ひとりで遊ぶので短く）
 const AFTER_CLEAR_MS = 800;
 

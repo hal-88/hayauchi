@@ -156,6 +156,7 @@ export function showLobby(el, go, { code }) {
       </div>
       <div class="slots"></div>
       <div class="lobby-target"></div>
+      <div class="lobby-target lobby-mode"></div>
       <div class="buttons">
         <button class="btn primary big" type="button" data-act="start" hidden>スタート <kbd>Enter</kbd></button>
         <button class="btn" type="button" data-act="leave">部屋から出る</button>
@@ -200,6 +201,26 @@ export function showLobby(el, go, { code }) {
       );
     } else {
       $('.lobby-target').innerHTML = `<span>ルール</span><b class="target on">${target}点先取</b>`;
+    }
+    // モード：ふつう／真剣勝負（1回まちがえたら、その問題はもう打てない）
+    const hard = !!room.meta.hard;
+    const modeDesc = `<small class="mode-desc">${hard ? '1回まちがえたら、その問題はもう打てない！' : 'まちがえても、そのまま打ちつづけられる'}</small>`;
+    if (iAmHost) {
+      $('.lobby-mode').innerHTML = `<span>モード</span>${[
+        [false, 'ふつう'],
+        [true, '⚔ 真剣勝負'],
+      ]
+        .map(([h, label]) => `<button type="button" class="target ${h === hard ? 'on' : ''} ${h ? 'hard' : ''}" data-hard="${h ? 1 : 0}">${label}</button>`)
+        .join('')}${modeDesc}`;
+      $('.lobby-mode').querySelectorAll('[data-hard]').forEach((b) =>
+        b.addEventListener('click', async () => {
+          const db = await getDb();
+          await db.update(`rooms/${code}/meta`, { hard: b.dataset.hard === '1' });
+          sfx.click();
+        })
+      );
+    } else {
+      $('.lobby-mode').innerHTML = `<span>モード</span><b class="target on ${hard ? 'hard' : ''}">${hard ? '⚔ 真剣勝負' : 'ふつう'}</b>${modeDesc}`;
     }
     const enough = members.filter(([, m]) => m.online).length >= ONLINE.minPlayers;
     const startBtn = $('[data-act="start"]');

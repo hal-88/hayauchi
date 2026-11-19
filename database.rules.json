@@ -32,6 +32,7 @@
           "createdAt": { ".validate": "newData.isNumber()" },
           "status": { ".validate": "newData.val() === 'lobby' || newData.val() === 'playing' || newData.val() === 'done'" },
           "target": { ".validate": "newData.val() === 5 || newData.val() === 10" },
+          "hard": { ".validate": "newData.isBoolean()" },
           "$other": { ".validate": false }
         },
         "members": {
@@ -78,6 +79,12 @@
               "$uid": {
                 ".write": "auth != null && auth.uid === $uid && root.child('rooms/' + $code + '/members/' + auth.uid).exists()",
                 ".validate": "newData.hasChildren(['s', 'at']) && newData.child('s').isNumber() && newData.child('s').val() >= 0 && newData.child('s').val() <= 5 && newData.child('at').isNumber()"
+              }
+            },
+            "out": {
+              "$uid": {
+                ".write": "auth != null && auth.uid === $uid && root.child('rooms/' + $code + '/members/' + auth.uid).exists()",
+                ".validate": "newData.val() === true"
               }
             },
             "prog": {

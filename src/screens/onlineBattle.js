@@ -98,6 +98,8 @@ export function showOnlineBattle(el, go, { code }) {
   let secondShown = false; // 二段構えの +1 を出した
   let shurikenOnMe = false; // 前の問題で手裏剣を受けた
   let roundMiss = 0;
+  let outThisRound = false; // 真剣勝負：この問題でまちがえたので、もう打てない
+  const hard = () => !!room?.meta?.hard;
 
   // 自分の忍術
   const myNj = getNinjutsu(getMyNinjutsu());
@@ -193,16 +195,17 @@ export function showOnlineBattle(el, go, { code }) {
       .join('');
   }
 
-  function drawRivals(prog) {
+  function drawRivals(prog, out) {
     const others = sortedMembers(room).filter(([uid]) => uid !== myUid);
     const konoha = new Set(effNow().eff.filter((a) => a.id === 'konoha').map((a) => a.uid)); // 木の葉隠れの術
     $('.rivals').innerHTML = others
       .map(([uid, m]) => {
         const p = Math.max(0, Math.min(1, phase === 'countdown' ? 0 : prog?.[uid] || 0));
         const hidden = konoha.has(uid);
-        return `<div class="rv ${!m.online || m.left ? 'off' : ''}">
+        const isOut = !!out?.[uid] && phase !== 'countdown';
+        return `<div class="rv ${!m.online || m.left ? 'off' : ''} ${isOut ? 'out' : ''}">
           ${ninjaSvg(m.ninja, { color: m.color, costume: m.costume, cls: 'rv-ninja' })}
-          <span class="rv-name">${esc(m.name)}${hidden ? ' <small>？？？</small>' : ''}</span>
+          <span class="rv-name">${esc(m.name)}${hidden ? ' <small>？？？</small>' : ''}${isOut ? ' <small class="rv-out">ミスで終わり</small>' : ''}</span>
           <div class="bar ${hidden ? 'hidden' : ''}"><i style="width:${(p * 100).toFixed(0)}%"></i></div>
         </div>`;
       })
@@ -262,6 +265,9 @@ export function showOnlineBattle(el, go, { code }) {
     previewed = false;
     revealPerf = 0;
     roundMiss = 0;
+    outThisRound = false;
+    card.classList.remove('out');
+    stage.querySelector('.out-msg')?.remove();
     migawariRoundStart = migawariLeft;
     card.classList.remove('peek');
     hideKana(card, false);
@@ -286,7 +292,7 @@ export function showOnlineBattle(el, go, { code }) {
     const reach = sortedMembers(room)
       .filter(([uid]) => (scores[uid] || 0) === room.meta.target - 1)
       .map(([uid]) => nameOf(uid));
-    let label = reach.length ? `${reach.join('・')} あと1点！` : `第${g.round}問`;
+    let label = reach.length ? `${reach.join('・')} あと1点！` : `${hard() ? '真剣勝負 ' : ''}第${g.round}問`;
     if (shurikenOnMe) label = '手裏剣で1文字ふえる！';
 
     const delay = g.showAt - db.now();
@@ -621,7 +627,7 @@ export function showOnlineBattle(el, go, { code }) {
       stage.insertAdjacentHTML('beforeend', stampHtml(`${nameOf(w.uid)}が取った${extra}`, sec, true));
       sfx.lose();
     } else {
-      stage.insertAdjacentHTML('beforeend', stampHtml('だれも取れず', '', true));
+      stage.insertAdjacentHTML('beforeend', stampHtml(w.out ? 'みんなミス！だれも取れず' : 'だれも取れず', '', true));
     }
     // 常時型の数え
     if (w.uid === myUid) {
@@ -671,6 +677,7 @@ export function showOnlineBattle(el, go, { code }) {
   const hostTimers = timerBag();
   let scheduledRound = 0; // 次の問題を出す予約をした番号
   let timeoutRound = 0; // だれも取れないときの予約をした番号
+  let outSkipRound = 0; // 真剣勝負で、みんながまちがえたときの予約をした番号
   let removeScheduled = false;
   const deck = [];
 
@@ -771,9 +778,9 @@ export function showOnlineBattle(el, go, { code }) {
     shareFn = setupShare(
       el,
       {
-        mode: `みんなでたいせん ${ranked.length}人`,
+        mode: `みんなでたいせん${snapshot.meta?.hard ? '・真剣勝負' : ''} ${ranked.length}人`,
         headline: iGone ? '負け…' : `${myRank}位${myRank === 1 ? '！' : ''}`,
-        sub: `${me?.pts ?? 0}点（${snapshot.meta?.target ?? ''}点先取）`,
+        sub: `${me?.pts ?? 0}点（${snapshot.meta?.target ?? ''}点先取${snapshot.meta?.hard ? '・真剣勝負' : ''}）`,
         lines: [`取った問題 ${mine.length}問・正確さ ${acc}%`],
         name: myM.name,
         ninja: myM.ninja,
@@ -843,7 +850,19 @@ export function showOnlineBattle(el, go, { code }) {
         const nidan = Object.entries(rr.nj || {}).some(([u, rec]) => rec?.id === 'nidan' && u !== winner.uid);
         hostTimers.later(() => hostStartRound(g.round + 1), nidan ? NJ_RULES.nidanGraceMs + 600 : ONLINE.roundEndMs);
       }
-    } else if (timeoutRound < g.round) {
+    } else {
+      // 真剣勝負：いる人みんながまちがえたら、待たずに「だれも取れず」
+      const act = activeMembers(room).map(([u]) => u);
+      if (hard() && outSkipRound < g.round && act.length && act.every((u) => rr?.out?.[u])) {
+        outSkipRound = g.round;
+        const r = g.round;
+        hostTimers.later(() => {
+          if (closed || overShown || !room || room.game?.round !== r || room.rounds?.[roundKey(r)]?.winner) return;
+          db.claim(pathOf(code, `rounds/${roundKey(r)}/winner`), { uid: null, skip: true, out: true, at: db.now() });
+        }, 900);
+      }
+    }
+    if (!winner && timeoutRound < g.round) {
       timeoutRound = g.round;
       const r = g.round;
       hostTimers.later(() => {
@@ -895,7 +914,7 @@ export function showOnlineBattle(el, go, { code }) {
         }
       }
     }
-    drawRivals(rr?.prog);
+    drawRivals(rr?.prog, rr?.out);
     drawHint();
 
     const over = overState();
@@ -963,6 +982,7 @@ export function showOnlineBattle(el, go, { code }) {
     imeWarn.hidden = true;
     if (phase !== 'typing' && phase !== 'nidan') return;
     e.preventDefault();
+    if (outThisRound) return; // 真剣勝負：まちがえたので、この問題はもう打てない
     if (performance.now() < stopUntil) return; // ミスのあと・こおらせの間は打てない
     if (matcher.input(k.char)) {
       myKeys++;
@@ -979,6 +999,10 @@ export function showOnlineBattle(el, go, { code }) {
       roundMiss++;
       sfx.miss();
       shake(card);
+      if (hard()) {
+        knockOut();
+        return;
+      }
       const ids = myEffIds();
       if (ids.has('suketto')) keyHelp(card, matcher.rest[0]); // 助っ人の術：次のキーを光らせる
       // ふだんはミスしても止まらない。まきびしの術を受けていたら、最初のミスだけ0.5秒止まる
@@ -987,6 +1011,14 @@ export function showOnlineBattle(el, go, { code }) {
         stopUntil = Math.max(stopUntil, missStop(card, NJ_RULES.makibishiMs));
       }
     }
+  }
+
+  /** 真剣勝負：まちがえたので、この問題はここまで */
+  function knockOut() {
+    outThisRound = true;
+    card.classList.add('out');
+    stage.insertAdjacentHTML('beforeend', '<div class="out-msg"><b>ミス！</b><span>この問題はここまで</span></div>');
+    db.set(pathOf(code, `rounds/${roundKey(localRound)}/out/${myUid}`), true);
   }
 
   async function quit() {
