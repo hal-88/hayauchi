@@ -816,7 +816,8 @@ export function showOnlineBattle(el, go, { code }) {
   async function hostStartRound(n) {
     if (closed || overShown || !room || effectiveHost(room) !== myUid || overState()) return;
     const w = nextWord();
-    await db.set(pathOf(code, 'game'), { round: n, word: { text: w.text, kana: w.kana }, showAt: db.now() + COUNTDOWN_MS + ONLINE.revealBufferMs });
+    // key＝今の問題の場所（r1, r2…）。ルールで「今の問題にだけ点を書ける」ようにするのに使う
+    await db.set(pathOf(code, 'game'), { round: n, key: roundKey(n), word: { text: w.text, kana: w.kana }, showAt: db.now() + COUNTDOWN_MS + ONLINE.revealBufferMs });
   }
 
   function hostDuties() {
