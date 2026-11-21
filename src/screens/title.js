@@ -1,5 +1,6 @@
 import { showSolo } from './solo.js';
 import { showSixty } from './sixty.js';
+import { showJugemu } from './jugemu.js';
 import { showCpuSetup } from './cpuSetup.js';
 import { showNinjaSelect } from './ninjaSelect.js';
 import { showNinjutsuSelect } from './ninjutsuSelect.js';
@@ -47,15 +48,16 @@ export function showTitle(el, go) {
         <div class="menu">
           <button class="btn primary big" type="button" data-go="cpu"><kbd>1</kbd> CPUとたいせん</button>
           <button class="btn" type="button" data-go="online"><kbd>2</kbd> みんなでたいせん <small>2〜4人</small></button>
-          <div class="menu-row">
+          <div class="menu-row three">
             <button class="btn" type="button" data-go="solo"><kbd>3</kbd> ひとりでしゅぎょう <small>10問</small></button>
             <button class="btn" type="button" data-go="sixty"><kbd>4</kbd> 🏆 60秒チャレンジ</button>
+            <button class="btn" type="button" data-go="jugemu"><kbd>5</kbd> 📜 じゅげむチャレンジ</button>
           </div>
           <div class="menu-row">
-            <button class="btn" type="button" data-go="ninja"><kbd>5</kbd> 忍者をえらぶ</button>
-            <button class="btn" type="button" data-go="ninjutsu"><kbd>6</kbd> 忍術をえらぶ</button>
-            <button class="btn ${scrolls >= SCROLL_RULES.learnCost ? 'glow' : ''}" type="button" data-go="learn"><kbd>7</kbd> 忍術を覚える <small>${SCROLL_ICON}${scrolls}</small></button>
-            <button class="btn" type="button" data-go="kura"><kbd>8</kbd> ごほうびの蔵 <small>${cc.have}/${cc.total}</small></button>
+            <button class="btn" type="button" data-go="ninja"><kbd>6</kbd> 忍者をえらぶ</button>
+            <button class="btn" type="button" data-go="ninjutsu"><kbd>7</kbd> 忍術をえらぶ</button>
+            <button class="btn ${scrolls >= SCROLL_RULES.learnCost ? 'glow' : ''}" type="button" data-go="learn"><kbd>8</kbd> 忍術を覚える <small>${SCROLL_ICON}${scrolls}</small></button>
+            <button class="btn" type="button" data-go="kura"><kbd>9</kbd> ごほうびの蔵 <small>${cc.have}/${cc.total}</small></button>
           </div>
         </div>
       </div>
@@ -68,13 +70,14 @@ export function showTitle(el, go) {
     online: () => go(showOnlineMenu),
     solo: () => go(showSolo),
     sixty: () => go(showSixty),
+    jugemu: () => go(showJugemu),
     ninja: () => go(showNinjaSelect),
     ninjutsu: () => go(showNinjutsuSelect),
     learn: () => go(showLearn),
     kura: () => go(showKura),
   };
   el.querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', routes[b.dataset.go]));
-  const keys = { Enter: 'cpu', 1: 'cpu', 2: 'online', 3: 'solo', 4: 'sixty', 5: 'ninja', 6: 'ninjutsu', 7: 'learn', 8: 'kura' };
+  const keys = { Enter: 'cpu', 1: 'cpu', 2: 'online', 3: 'solo', 4: 'sixty', 5: 'jugemu', 6: 'ninja', 7: 'ninjutsu', 8: 'learn', 9: 'kura' };
   const onKey = (e) => {
     const r = keys[e.key];
     if (!r) return;

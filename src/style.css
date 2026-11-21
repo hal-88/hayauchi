@@ -3471,3 +3471,144 @@ svg.flip {
   color: var(--shu);
   font-weight: 800;
 }
+
+/* ---- じゅげむチャレンジ：巻物を巻きとるように、打ったところが左へ流れる ---- */
+.jugemu-play .scroll {
+  height: clamp(220px, 42vh, 340px);
+}
+.jugemu-play .scroll .paper {
+  padding: 0;
+  overflow: hidden;
+  justify-content: flex-start;
+}
+.jugemu-play .stage {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  text-align: left;
+  /* 両はしは巻きこまれていくように、うすく */
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 12%, #000 86%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 12%, #000 86%, transparent 100%);
+}
+.jg-track {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  margin-top: calc(clamp(40px, 9vh, 72px) * -0.95);
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(18px, 3.4vh, 30px);
+  white-space: nowrap;
+  transition: transform 0.14s ease-out;
+  will-change: transform;
+}
+.jg-p {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.jg-p .k {
+  font-family: var(--brush);
+  font-size: clamp(40px, 9vh, 72px);
+  line-height: 1.1;
+  color: var(--ink);
+}
+.jg-p .r {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: clamp(20px, 4.2vh, 32px);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #a39880;
+}
+.jg-p.done .k,
+.jg-p.done .r {
+  color: #b9ad94;
+}
+.jg-p.cur .k {
+  color: var(--ink);
+}
+.jg-p.cur .k .d {
+  color: var(--shu);
+}
+.jg-p.cur .r {
+  color: var(--ink);
+}
+.jg-p.cur .r .t {
+  color: var(--shu);
+}
+.jg-p.cur .r .next {
+  background: #ffe7a8;
+  border-bottom: 3px solid var(--shu);
+  border-radius: 3px;
+  min-width: 0.6em;
+  display: inline-block;
+}
+.scroll.shake .jg-p.cur .r .next {
+  background: #ffd9d2;
+}
+/* 左の軸は打つほど太く（巻きとった紙）、右の軸は細く */
+.jugemu-play .scroll .rod.l {
+  width: calc(var(--roll) * (0.75 + 0.6 * var(--p, 0)));
+  left: calc(var(--roll) * (0.75 + 0.6 * var(--p, 0)) / -2);
+}
+.jugemu-play .scroll .rod.r {
+  width: calc(var(--roll) * (1.35 - 0.6 * var(--p, 0)));
+  right: calc(var(--roll) * (1.35 - 0.6 * var(--p, 0)) / -2);
+}
+.jugemu-play .scroll.closed .rod.l,
+.jugemu-play .scroll.closed .rod.r {
+  width: var(--roll);
+}
+.jugemu-play .scroll.closed .rod.l {
+  left: calc(50% - var(--roll));
+}
+.jugemu-play .scroll.closed .rod.r {
+  right: calc(50% - var(--roll));
+}
+.jg-bar {
+  width: min(100%, 900px);
+  height: 10px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  overflow: hidden;
+  align-self: center;
+}
+.jg-bar i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--shu);
+  transition: width 0.14s ease-out;
+}
+.plus-note {
+  font-size: 11px;
+  margin-left: 2px;
+  opacity: 0.8;
+}
+.jugemu .sixty-lead {
+  font-size: clamp(17px, 3vh, 23px);
+  line-height: 1.4;
+}
+/* タイトル：しゅぎょう・60秒・じゅげむ を1行に3つ */
+.title-body {
+  grid-template-columns: 240px minmax(0, 600px);
+}
+.menu-row.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.menu-row.three .btn {
+  font-size: 13.5px;
+  padding-left: 6px;
+  padding-right: 6px;
+  gap: 4px;
+}
+.title-body {
+  grid-template-columns: 240px minmax(0, 620px);
+}
+.jg-p .r .next {
+  background: #ffe7a8;
+  border-bottom: 3px solid var(--shu);
+  border-radius: 3px;
+  color: var(--ink);
+}

@@ -49,3 +49,40 @@ export async function submitSixty(profile, equip, rec) {
   );
   return { key, saved: true };
 }
+
+// ---------- じゅげむチャレンジ（ranking/jugemu）：タイムが短いほどよい ----------
+const JG_PATH = 'ranking/jugemu';
+
+/** よい記録か：タイム（ミスの +0.5秒こみ）が短いほう */
+export const betterJugemu = (a, b) => !b || a.ms < b.ms;
+
+/** じゅげむのランキングを、速い順に。{ key, name, ninja, color, costume, ms, miss, mine } の配列 */
+export async function loadJugemu(myName) {
+  const db = await withTimeout(getDb());
+  const all = (await withTimeout(db.get(JG_PATH))) || {};
+  const myKey = `${db.uid}_${nameCode(myName)}`;
+  return Object.entries(all)
+    .map(([key, v]) => ({ key, ...v, mine: key === myKey }))
+    .filter((v) => Number.isFinite(v.ms) && v.name)
+    .sort((a, b) => a.ms - b.ms || a.at - b.at);
+}
+
+/** じゅげむの記録を送る（前より速いときだけ書きかえる）。もどり値は { key, saved } */
+export async function submitJugemu(profile, equip, rec) {
+  const db = await withTimeout(getDb());
+  const key = `${db.uid}_${nameCode(profile.name)}`;
+  const cur = await withTimeout(db.get(`${JG_PATH}/${key}`));
+  if (!betterJugemu(rec, cur)) return { key, saved: false };
+  await withTimeout(
+    db.set(`${JG_PATH}/${key}`, {
+      name: profile.name,
+      ninja: profile.ninja,
+      color: equip.color,
+      costume: equip.costume,
+      ms: rec.ms,
+      miss: rec.miss,
+      at: db.now(),
+    })
+  );
+  return { key, saved: true };
+}

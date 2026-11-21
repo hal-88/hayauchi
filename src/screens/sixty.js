@@ -30,14 +30,14 @@ const READY_MS = 3000; // はじまる前の 3・2・1
 const RANK_SHOW = 10; // ランキングに出す人数
 
 /** ランキングの表（上から10人。自分が10位より下なら、下に自分の行もつける） */
-function rankHtml(list) {
+export function rankHtml(list, value = (r) => `${r.words}<small>こ</small>`) {
   if (!list.length) return '<p class="rank-empty">まだだれも記録がないよ。1番乗りしよう！</p>';
   const row = (r, i) => `
     <li class="rk ${r.mine ? 'me' : ''} ${i < 3 ? `top${i + 1}` : ''}">
       <span class="rk-no">${i + 1}</span>
       ${ninjaSvg(r.ninja, { color: r.color, costume: r.costume, cls: 'rk-ninja' })}
       <b class="rk-name">${esc(r.name)}</b>
-      <span class="rk-w">${r.words}<small>こ</small></span>
+      <span class="rk-w">${value(r)}</span>
     </li>`;
   const top = list.slice(0, RANK_SHOW).map(row).join('');
   const mi = list.findIndex((r) => r.mine);
@@ -45,7 +45,7 @@ function rankHtml(list) {
   return `<ol class="rank-list">${top}${extra}</ol>`;
 }
 
-const RANK_PANEL = () => `
+export const RANK_PANEL = () => `
   <div class="sixty-rank panel">
     <h3>🏆 クラスのランキング</h3>
     <div class="rank-body"><p class="rank-empty">よみこみ中…</p></div>

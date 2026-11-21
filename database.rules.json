@@ -36,6 +36,37 @@
             ".validate": false
           }
         }
+      },
+      "jugemu": {
+        ".read": "auth != null",
+        "$key": {
+          ".write": "auth != null && $key.beginsWith(auth.uid + '_') && $key.length <= 160",
+          ".validate": "newData.hasChildren(['name', 'ninja', 'ms', 'at']) && (!data.exists() || newData.child('ms').val() < data.child('ms').val())",
+          "name": {
+            ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 8"
+          },
+          "ninja": {
+            ".validate": "newData.isString() && newData.val().length <= 20"
+          },
+          "color": {
+            ".validate": "newData.isString() && newData.val().length <= 20"
+          },
+          "costume": {
+            ".validate": "newData.isString() && newData.val().length <= 20"
+          },
+          "ms": {
+            ".validate": "newData.isNumber() && newData.val() >= 10000 && newData.val() <= 3600000"
+          },
+          "miss": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 3000"
+          },
+          "at": {
+            ".validate": "newData.isNumber() && newData.val() <= now + 60000"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
       }
     },
     "rooms": {
