@@ -3612,3 +3612,10 @@ svg.flip {
   border-radius: 3px;
   color: var(--ink);
 }
+/* 60秒チャレンジで巻物がもらえなかったときの案内 */
+.scroll-hint {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}

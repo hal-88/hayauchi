@@ -3,7 +3,9 @@
 import { RomajiMatcher } from '../logic/romaji.js';
 import { pickWords, WORDS } from '../data/words.js';
 import { sfx } from '../audio/sfx.js';
-import { getEquip, getProfile, getSave, recordSixty } from '../progress/save.js';
+import { awardSixty, getEquip, getProfile, getSave, recordSixty } from '../progress/save.js';
+import { scrollGainHtml } from '../ui/scrollUi.js';
+import { SCROLL_RULES } from '../data/ninjutsu.js';
 import { loadSixty, submitSixty } from '../online/ranking.js';
 import { isLocalMode } from '../online/config.js';
 import { ninjaSvg } from '../ui/ninjaSvg.js';
@@ -81,6 +83,7 @@ export function showSixty(el, go, { start = false } = {}) {
             <li>まちがえると、のこり時間が 0.5秒 へる</li>
             <li>術は使えないよ。打つ速さだけで勝負！</li>
             <li>結果は クラスのランキングに 登録されるよ</li>
+            <li>巻物：ことば10こごとに1本（4本まで）、自己ベストで さらに2本</li>
           </ul>
           <div class="my-best"><span>自己ベスト</span><b>${b ? `${b.words}<small>こ</small>` : '<small>まだなし</small>'}</b></div>
           <div class="buttons">
@@ -211,6 +214,7 @@ function playSixty(el, go) {
   function showResult() {
     const prev = getSave().sixty.best;
     const isBest = recordSixty(count, keys);
+    const scrolls = awardSixty(count, isBest);
     const acc = keys + miss ? Math.round((keys / (keys + miss)) * 100) : 100;
     const kps = (keys / Math.max(1, playedMs / 1000)).toFixed(1);
     el.innerHTML = `
@@ -224,6 +228,7 @@ function playSixty(el, go) {
                 ? `<b class="new-best">自己ベスト更新！</b>${prev ? ` これまで ${prev.words}こ` : ''}`
                 : `自己ベスト ${prev.words}こ`
             }</p>
+            ${scrolls > 0 ? scrollGainHtml(scrolls) : `<p class="scroll-hint">ことばを${SCROLL_RULES.sixtyPer}こ打つと 巻物が1本もらえるよ</p>`}
             <div class="stats">
               <div class="stat"><span>打ったキー</span><b>${keys}</b></div>
               <div class="stat"><span>1秒に</span><b>${kps}<small>回</small></b></div>

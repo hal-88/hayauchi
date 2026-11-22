@@ -196,6 +196,22 @@ export function recordSixty(words, keys) {
   return isBest;
 }
 
+/** 60秒チャレンジの巻物：ことば10こごとに1本（4本まで）＋自己ベストなら2本。もらった本数を返す */
+export function awardSixty(words, isBest) {
+  const n = Math.min(SCROLL_RULES.sixtyMax, Math.floor(words / SCROLL_RULES.sixtyPer)) + (isBest && words > 0 ? SCROLL_RULES.bestBonus : 0);
+  if (n > 0) addScrolls(n);
+  persist();
+  return n;
+}
+
+/** じゅげむチャレンジの巻物：打ち切ったら2本＋自己ベストなら2本。もらった本数を返す */
+export function awardJugemu(isBest) {
+  const n = SCROLL_RULES.jugemuClear + (isBest ? SCROLL_RULES.bestBonus : 0);
+  addScrolls(n);
+  persist();
+  return n;
+}
+
 /** じゅげむチャレンジの記録。自己ベストなら true */
 export function recordJugemu(ms, miss) {
   const b = data.jugemu.best;

@@ -4,7 +4,8 @@
 import { RomajiMatcher } from '../logic/romaji.js';
 import { JUGEMU } from '../data/jugemu.js';
 import { sfx } from '../audio/sfx.js';
-import { getEquip, getProfile, getSave, recordJugemu } from '../progress/save.js';
+import { awardJugemu, getEquip, getProfile, getSave, recordJugemu } from '../progress/save.js';
+import { scrollGainHtml } from '../ui/scrollUi.js';
 import { loadJugemu, submitJugemu } from '../online/ranking.js';
 import { spawnAt } from '../ui/effects.js';
 import { shareButtonHtml, setupShare, closeSharePanel } from '../ui/share.js';
@@ -52,6 +53,7 @@ export function showJugemu(el, go, { start = false } = {}) {
             <li>まちがえると、タイムに +0.5秒</li>
             <li>術は使えないよ。打つ速さだけで勝負！</li>
             <li>結果は クラスのランキングに 登録されるよ</li>
+            <li>巻物：打ち切ったら2本、自己ベストで さらに2本</li>
           </ul>
           <div class="my-best"><span>自己ベスト</span><b>${b ? timeHtml(b) : '<small>まだなし</small>'}</b></div>
           <div class="buttons">
@@ -199,6 +201,7 @@ function playJugemu(el, go) {
   function showResult() {
     const prev = getSave().jugemu.best;
     const isBest = recordJugemu(totalMs, miss);
+    const scrolls = awardJugemu(isBest);
     const acc = keys + miss ? Math.round((keys / (keys + miss)) * 100) : 100;
     const rawMs = totalMs - miss * JUGEMU_MISS_MS;
     const kps = (keys / Math.max(1, rawMs / 1000)).toFixed(1);
@@ -213,6 +216,7 @@ function playJugemu(el, go) {
                 ? `<b class="new-best">自己ベスト更新！</b>${prev ? ` これまで ${sec(prev.ms)}秒` : ''}`
                 : `自己ベスト ${sec(prev.ms)}秒`
             }</p>
+            ${scrollGainHtml(scrolls)}
             <div class="stats">
               <div class="stat"><span>打ったタイム</span><b>${sec(rawMs)}<small>秒</small></b></div>
               <div class="stat"><span>ミス（+0.5秒）</span><b>${miss}<small>回</small></b></div>
