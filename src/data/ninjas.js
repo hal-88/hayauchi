@@ -1,4 +1,4 @@
-// 忍者8人。starter＝最初から使える、unlockLevel＝CPU戦でそのLvにはじめて勝つと仲間になる
+// 忍者9人。starter＝最初から使える、unlockLevel＝CPU戦でそのLvにはじめて勝つと仲間になる
 // jutsu＝忍者の術のID（src/logic/jutsu.js で効果を決める）、jutsuInfo＝表示用の名前と説明
 export const NINJAS = [
   {
@@ -33,7 +33,16 @@ export const NINJAS = [
     id: 'tsuki', name: '月の忍', color: '#3f3577', accent: '#f2cf5b', eye: 'calm', symbol: 'moon', unlockLevel: 5,
     jutsu: 'gyakuten', jutsuInfo: { name: '逆転の術', desc: '負けているときだけ使える。その問題を取ったら1位の人から1点うばう' },
   },
+  {
+    // 2026-11-27 ゆぐ：CPU Lv6（でんせつ）に勝つと仲間になる忍者
+    id: 'ryu', name: '龍の忍', color: '#8c1f2a', accent: '#f2c14e', eye: 'sharp', symbol: 'dragon', unlockLevel: 6,
+    jutsu: 'ryujin', jutsuInfo: { name: '龍神の術', desc: 'その問題を取ったら2点。相手に取られても、相手に点が入らない' },
+  },
 ];
+
+/** 取ったら2点になる術（倍撃・龍神）と、取られても相手に点が入らない術（鉄壁・龍神） */
+export const DOUBLE_JUTSU = new Set(['bageki', 'ryujin']);
+export const WALL_JUTSU = new Set(['teppeki', 'ryujin']);
 
 export const STARTER_IDS = NINJAS.filter((n) => n.starter).map((n) => n.id);
 
@@ -41,7 +50,7 @@ export function getNinja(id) {
   return NINJAS.find((n) => n.id === id) || NINJAS[0];
 }
 
-/** CPU戦の相手。Lv2〜5は、勝つと仲間になる忍者。Lv1は最初の4人からランダム */
+/** CPU戦の相手。Lv2〜6は、勝つと仲間になる忍者（Lv6は龍の忍）。Lv1は最初の4人からランダム */
 export function cpuNinjaFor(level, rng = Math.random) {
   const n = NINJAS.find((x) => x.unlockLevel === level);
   if (n) return n;

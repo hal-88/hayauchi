@@ -97,7 +97,7 @@ export function kakushidamaPoints(rng = Math.random) {
   return Math.floor(rng() * 4);
 }
 
-/** 運試しの術：8人の忍者の術からランダム（逆転の術は負けているときだけ候補） */
+/** 運試しの術：9人の忍者の術からランダム（逆転の術は負けているときだけ候補） */
 export function undameshiPick(myScore, bestOther, rng = Math.random) {
   const ids = NINJAS.map((n) => n.jutsu).filter((id) => canUseJutsu(id, myScore, bestOther).ok);
   return ids[Math.floor(rng() * ids.length)];

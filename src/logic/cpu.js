@@ -8,19 +8,20 @@ export const CPU_LEVELS = [
   { level: 3, name: 'はやい', kps: 2.3, react: 950, miss: 0.06 },
   { level: 4, name: 'すごい', kps: 3.4, react: 750, miss: 0.04 },
   { level: 5, name: 'マスター', kps: 5.0, react: 550, miss: 0.02 },
+  { level: 6, name: 'でんせつ', kps: 9.0, react: 350, miss: 0.01 }, // 2026-11-27 ゆぐ：マスターより上の、めちゃくちゃ速いCPU
 ];
 
 const MISS_PAUSE = [250, 500]; // ミスしたときに止まる時間（ミリ秒）
 
 /**
  * @param {string} romaji 打つつづり
- * @param {number} level 1〜5
+ * @param {number} level 1〜6
  * @param {{reactScale?:number, noMissPause?:boolean, delay?:number}} opt 術の効果
  *   reactScale＝打ち始めるまでの時間の倍率（先読み）、noMissPause＝ミスで止まらない（いまは使っていない）、delay＝打ち始めがおそくなる（相手の術）
  * @returns {{times:number[], finishMs:number, misses:number}} times[i]＝i+1文字目を打ち終わる時刻
  */
 export function planCpu(romaji, level, rng = Math.random, opt = {}) {
-  const L = CPU_LEVELS[Math.min(Math.max(level, 1), 5) - 1];
+  const L = CPU_LEVELS[Math.min(Math.max(level, 1), CPU_LEVELS.length) - 1];
   let t = L.react * (0.8 + rng() * 0.4) * (opt.reactScale ?? 1) + (opt.delay || 0);
   const times = [];
   let misses = 0;

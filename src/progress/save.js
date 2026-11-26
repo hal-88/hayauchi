@@ -168,7 +168,7 @@ export function recordCpuMatch(level, win, rng = Math.random) {
   let reward = null;
   if (win) {
     const n = NINJAS.find((x) => x.unlockLevel === level);
-    if (n && before === 0 && !hasNinja(n.id)) {
+    if (n && !hasNinja(n.id)) { // まだ仲間でなければ、勝ったときに仲間になる
       data.ninjas.push(n.id);
       reward = { type: 'ninja', id: n.id };
     } else {

@@ -11,6 +11,7 @@ import { jutsuChipHtml, showJutsuBanner, blurFor, freezeFor, hideKana, jutsuHint
 import { NJ_RULES, NJ_PASSIVE, PASSIVE_RULES, canUseNinjutsu, shoryakuKana, gozaruWord, extendWord, kakushidamaPoints, undameshiPick, kagenuiTargets, fakeWordFor, ninjaJutsuLimit, rengekiKana, kishikaiseiKana } from '../logic/ninjutsuRules.js';
 import { effectiveActs, resolveHits, passivesOn, lastOthersAct } from '../logic/clash.js';
 import { getNinjutsu } from '../data/ninjutsu.js';
+import { WALL_JUTSU } from '../data/ninjas.js';
 import { pickWords, WORDS } from '../data/words.js';
 import { ONLINE } from '../online/config.js';
 import { getDb, watchRoom, leaveRoom, sortedMembers, activeMembers, effectiveHost, scoresOf, pathOf } from '../online/room.js';
@@ -571,9 +572,9 @@ export function showOnlineBattle(el, go, { code }) {
     stage.insertAdjacentHTML('beforeend', `<div class="judging">はんてい中…</div>`);
     const ids = myEffIds(); // 刀狩り・封印で消えた術は入らない
     // 鉄壁の術：ほかの人がこの問題で使っていたら、取っても点が入らない（逆転・達人もなし）
-    const walledBy = effNow().eff.find((a) => a.uid !== myUid && a.id === 'teppeki')?.uid || null;
+    const walledBy = effNow().eff.find((a) => a.uid !== myUid && WALL_JUTSU.has(a.id))?.uid || null; // 鉄壁・龍神の術
     const steal = !walledBy && ids.has('gyakuten') ? leaderToSteal(scoresOf(room), myUid, order()) : null;
-    let pts = ids.has('bageki') ? 2 : 1; // 倍撃の術
+    let pts = ids.has('bageki') || ids.has('ryujin') ? 2 : 1; // 倍撃・龍神の術
     if (ids.has('kakushidama')) pts = kakushidamaPoints(); // 隠し玉の術：0〜3点
     if (walledBy) pts = 0;
     // 手裏剣の術：2位（いちばん進んでいた人）の次の問題を1文字ふやす
@@ -615,7 +616,8 @@ export function showOnlineBattle(el, go, { code }) {
     log.push({ text: word.text, uid: w.uid || null, ms: w.ms });
     const sec = w.ms != null ? `${(w.ms / 1000).toFixed(2)}秒` : '';
     const pts = w.pts ?? 1;
-    const extra = `${w.wall ? `（${nameOf(w.wall)}の鉄壁で0点）` : w.kd ? ` 隠し玉で${pts}点` : pts > 1 ? ` +${pts}点` : ''}${w.bonus ? ' 達人+1' : ''}${
+    const wallId = w.wall ? effNow().eff.find((a) => a.uid === w.wall && WALL_JUTSU.has(a.id))?.id : null;
+    const extra = `${w.wall ? `（${nameOf(w.wall)}の${wallId === 'ryujin' ? '龍神' : '鉄壁'}で0点）` : w.kd ? ` 隠し玉で${pts}点` : pts > 1 ? ` +${pts}点` : ''}${w.bonus ? ' 達人+1' : ''}${
       w.steal ? `（${nameOf(w.steal)}から1点うばった）` : ''
     }${w.shurikenTo ? `（${nameOf(w.shurikenTo)}に手裏剣）` : ''}`;
     if (w.uid === myUid) {

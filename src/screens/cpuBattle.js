@@ -9,7 +9,7 @@ import { JUTSU_RULES, jutsuOf, jutsuName, canUseJutsu, shortenKana } from '../lo
 import { NJ_RULES, PASSIVE_RULES, NJ_PASSIVE, canUseNinjutsu, shoryakuKana, gozaruWord, extendWord, kakushidamaPoints, undameshiPick, ninjaJutsuLimit, kishikaiseiKana, rengekiKana } from '../logic/ninjutsuRules.js';
 import { effectiveActs, resolveHits, lastOthersAct, JAMA } from '../logic/clash.js';
 import { getNinjutsu } from '../data/ninjutsu.js';
-import { getNinja, cpuNinjaFor } from '../data/ninjas.js';
+import { getNinja, cpuNinjaFor, DOUBLE_JUTSU, WALL_JUTSU } from '../data/ninjas.js';
 import { getItem, kindLabel } from '../data/rewards.js';
 import { getProfile, getEquip, recordCpuMatch, equip, setProfile, getMyNinjutsu } from '../progress/save.js';
 import { sfx } from '../audio/sfx.js';
@@ -297,7 +297,7 @@ export function showCpuBattle(el, go, { level, target, foe }) {
     roundNj = myNj.id;
     let after = '';
     if (myNj.id === 'undameshi') {
-      // 運試し：8人の忍者の術のどれかが出る（忍者の術の「使った」にはならない）
+      // 運試し：9人の忍者の術のどれかが出る（忍者の術の「使った」にはならない）
       const pick = undameshiPick(score.me, score.cpu);
       roundJ.me = pick;
       addAct('me', pick);
@@ -489,17 +489,17 @@ export function showCpuBattle(el, go, { level, target, foe }) {
     phase = 'roundEnd';
     cancelAnimationFrame(raf);
     const other = winner === 'me' ? 'cpu' : 'me';
-    let pts = roundJ[winner] === 'bageki' ? 2 : 1;
+    let pts = DOUBLE_JUTSU.has(roundJ[winner]) ? 2 : 1; // 倍撃・龍神の術
     let note = '';
     if (winner === 'me' && roundNj === 'kakushidama') {
       pts = kakushidamaPoints(); // 隠し玉の術：0〜3点
       note = ` 隠し玉で${pts}点`;
     }
-    // 鉄壁の術：取られた側が使っていたら、取った側に点が入らない（逆転・達人もなし）
-    const walled = roundJ[other] === 'teppeki';
+    // 鉄壁・龍神の術：取られた側が使っていたら、取った側に点が入らない（逆転・達人もなし）
+    const walled = WALL_JUTSU.has(roundJ[other]);
     if (walled) {
       pts = 0;
-      note = ' 鉄壁で0点';
+      note = ` ${roundJ[other] === 'ryujin' ? '龍神' : '鉄壁'}で0点`;
     }
     score[winner] += pts;
     let stole = false;
@@ -612,7 +612,7 @@ export function showCpuBattle(el, go, { level, target, foe }) {
     const avg = mine.length ? mine.reduce((a, r) => a + r.ms, 0) / mine.length / 1000 : null;
     const best = mine.length ? Math.min(...mine.map((r) => r.ms)) / 1000 : null;
     const acc = totalKeys + totalMiss ? Math.round((totalKeys / (totalKeys + totalMiss)) * 100) : 100;
-    const canUp = win && level < 5;
+    const canUp = win && level < CPU_LEVELS.length;
 
     el.innerHTML = `
       <section class="result panel-page">

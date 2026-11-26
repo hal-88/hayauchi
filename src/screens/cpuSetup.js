@@ -1,4 +1,4 @@
-// CPU戦の準備：レベル（1〜5）と先取点（5/10）をえらぶ
+// CPU戦の準備：レベル（1〜6）と先取点（5/10）をえらぶ
 import { CPU_LEVELS, averageSeconds } from '../logic/cpu.js';
 import { toRomaji } from '../logic/romaji.js';
 import { WORDS } from '../data/words.js';
@@ -54,13 +54,13 @@ export function showCpuSetup(el, go, preset) {
         <div class="levels">
           ${CPU_LEVELS.map(
             (L) => `
-            <button type="button" class="level" data-level="${L.level}">
+            <button type="button" class="level ${L.level >= 6 ? 'legend' : ''}" data-level="${L.level}">
               ${ninjaSvg(foes[L.level].id, { cls: 'foe' })}
               ${unlockBadge(L.level)}
               <span class="lv">Lv${L.level}</span>
               <span class="foe-name">${esc(foes[L.level].name)}</span>
               <span class="lv-name">${L.name}</span>
-              <span class="stars">${'★'.repeat(L.level)}${'☆'.repeat(5 - L.level)}</span>
+              <span class="stars">${L.level >= 6 ? '★★★★★<b>+</b>' : `${'★'.repeat(L.level)}${'☆'.repeat(5 - L.level)}`}</span>
               <span class="lv-sec">1問 約${averageSeconds(L.level, AVG).toFixed(1)}秒</span>
             </button>`
           ).join('')}
@@ -107,9 +107,9 @@ export function showCpuSetup(el, go, preset) {
 
   const onKey = (e) => {
     if (e.key === 'ArrowLeft') s.level = Math.max(1, s.level - 1);
-    else if (e.key === 'ArrowRight') s.level = Math.min(5, s.level + 1);
+    else if (e.key === 'ArrowRight') s.level = Math.min(CPU_LEVELS.length, s.level + 1);
     else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') s.target = s.target === 5 ? 10 : 5;
-    else if (/^[1-5]$/.test(e.key)) s.level = +e.key;
+    else if (/^[1-9]$/.test(e.key) && CPU_LEVELS[+e.key - 1]) s.level = +e.key;
     else if (e.key === 'Enter') return e.preventDefault(), start();
     else if (e.key === 'Escape') return go(showTitle);
     else return;

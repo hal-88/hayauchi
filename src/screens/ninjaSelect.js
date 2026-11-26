@@ -8,7 +8,7 @@ import { showTitle } from './title.js';
 import { showNinjutsuSelect } from './ninjutsuSelect.js';
 
 const NAME_MAX = 8;
-const COLS = 4; // 忍者のならび（1列に4人）
+const COLS = 3; // 忍者のならび（3人×3列。2026-11-27 ゆぐ）
 
 export function showNinjaSelect(el, go, { first = false } = {}) {
   const p = getProfile();
@@ -100,7 +100,7 @@ export function showNinjaSelect(el, go, { first = false } = {}) {
 
   const onKey = (e) => {
     if (e.isComposing || e.keyCode === 229) return; // 日本語入力の変換中の Enter は決定にしない
-    // 十字キーで忍者をえらぶ（4人ずつ2列）
+    // 十字キーで忍者をえらぶ（3人ずつ3列）
     const moves = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -COLS, ArrowDown: COLS };
     if (moves[e.key] !== undefined) {
       e.preventDefault();

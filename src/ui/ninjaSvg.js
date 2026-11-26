@@ -23,6 +23,8 @@ function symbol(kind, c) {
       return `<g stroke="${c}" stroke-width="2" stroke-linecap="round"><line x1="60" y1="33" x2="60" y2="45"/><line x1="54.8" y1="36" x2="65.2" y2="42"/><line x1="54.8" y1="42" x2="65.2" y2="36"/></g>`;
     case 'mist':
       return `<g fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round"><path d="M53 35.5 q3.5-2 7 0 t7 0"/><path d="M53 39.5 q3.5-2 7 0 t7 0"/><path d="M53 43.5 q3.5-2 7 0 t7 0"/></g>`;
+    case 'dragon': // とぐろを巻いた龍（頭と角）
+      return `<path d="M64.5 34.5 q-6-2.5-9 1.5 q-2.5 3.5 1 5.5 q3.5 2 5.5-.5 q2-2.5-1-3.5 q-2-.5-2.5 1.2 M56 41.5 q-2.5 3.5 1.5 5 q5 1.5 8-2.5" fill="none" stroke="${c}" stroke-width="1.9" stroke-linecap="round"/><path d="M64.5 34.5 l2-2.4 M64.8 35.2 l2.8-.6" stroke="${c}" stroke-width="1.5" stroke-linecap="round"/><circle cx="63.6" cy="35.8" r=".9" fill="${c}"/>`;
     case 'moon':
       return `<circle cx="60" cy="39" r="5.6" fill="${c}"/><circle cx="62.6" cy="37.4" r="4.6" fill="${PLATE}"/>`;
     default:
