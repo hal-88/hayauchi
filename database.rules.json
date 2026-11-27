@@ -37,7 +37,7 @@
           }
         }
       },
-      "jugemu": {
+      "heike": {
         ".read": "auth != null",
         "$key": {
           ".write": "auth != null && $key.beginsWith(auth.uid + '_') && $key.length <= 160",

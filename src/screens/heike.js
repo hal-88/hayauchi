@@ -1,26 +1,27 @@
-// じゅげむチャレンジ：「じゅげむ じゅげむ ごこうのすりきれ…」を何秒で打ち切れるか。術はなし。
+// 平家物語チャレンジ：「祇園精舎の鐘の声…」から「ひとえに風の前の塵に同じ」までを何秒で打ち切れるか。術はなし。
 // まちがえると +0.5秒。巻物を巻きとるように、打ったところが左へ流れていく。
-// 記録はクラスのランキング（Firebase の ranking/jugemu）と、この端末の自己ベスト
+// 記録はクラスのランキング（Firebase の ranking/heike）と、この端末の自己ベスト
+// 2026-11-28 ゆぐ：平家物語チャレンジを平家物語チャレンジに置きかえた
 import { RomajiMatcher } from '../logic/romaji.js';
-import { JUGEMU } from '../data/jugemu.js';
+import { HEIKE } from '../data/heike.js';
 import { sfx } from '../audio/sfx.js';
-import { awardJugemu, getEquip, getProfile, getSave, recordJugemu } from '../progress/save.js';
+import { awardHeike, getEquip, getProfile, getSave, recordHeike } from '../progress/save.js';
 import { scrollGainHtml } from '../ui/scrollUi.js';
-import { loadJugemu, submitJugemu } from '../online/ranking.js';
+import { loadHeike, submitHeike } from '../online/ranking.js';
 import { spawnAt } from '../ui/effects.js';
 import { shareButtonHtml, setupShare, closeSharePanel } from '../ui/share.js';
 import { rankHtml, RANK_PANEL } from './sixty.js';
 import { showTitle } from './title.js';
 import { esc, readTypingKey, IME_WARN_HTML, SCROLL_HTML, closeScroll, openScroll, shake, setupShake, timerBag } from '../ui/typing.js';
 
-export const JUGEMU_MISS_MS = 500; // まちがえると +0.5秒
+export const HEIKE_MISS_MS = 500; // まちがえると +0.5秒
 const READY_MS = 3000; // はじまる前の 3・2・1
 const ANCHOR = 0.36; // 次に打つ文字を、紙の左から この割合の所に置く
 
-const FULL = JUGEMU.join('');
-const STARTS = JUGEMU.reduce((a, p) => [...a, a[a.length - 1] + p.length], [0]); // 区切りの始まり（読みの何文字目）。最後は全体の長さ
+const FULL = HEIKE.map((p) => p.kana).join('');
+const STARTS = HEIKE.reduce((a, p) => [...a, a[a.length - 1] + p.kana.length], [0]); // 区切りの始まり（読みの何文字目）。最後は全体の長さ
 const TAIL = STARTS.map((s) => new RomajiMatcher(FULL.slice(s)).rest); // その区切りから最後までの お手本
-const MODEL = JUGEMU.map((_, i) => TAIL[i].slice(0, TAIL[i].length - TAIL[i + 1].length)); // 区切りごとのお手本
+const MODEL = HEIKE.map((_, i) => TAIL[i].slice(0, TAIL[i].length - TAIL[i + 1].length)); // 区切りごとのお手本
 
 const sec = (ms) => (ms / 1000).toFixed(2);
 const timeHtml = (r) => `${sec(r.ms)}<small>秒</small>`;
@@ -28,7 +29,7 @@ const timeHtml = (r) => `${sec(r.ms)}<small>秒</small>`;
 async function fillRank(el, alive) {
   const body = el.querySelector('.rank-body');
   try {
-    const list = await loadJugemu(getProfile().name);
+    const list = await loadHeike(getProfile().name);
     if (alive()) body.innerHTML = rankHtml(list, timeHtml);
     return list;
   } catch (e) {
@@ -38,16 +39,16 @@ async function fillRank(el, alive) {
 }
 
 /** はじめの画面：ルール・自己ベスト・ランキング。start: true なら すぐ はじめる（もう一回） */
-export function showJugemu(el, go, { start = false } = {}) {
-  if (start) return playJugemu(el, go);
+export function showHeike(el, go, { start = false } = {}) {
+  if (start) return playHeike(el, go);
   let alive = true;
-  const b = getSave().jugemu.best;
+  const b = getSave().heike.best;
   el.innerHTML = `
-    <section class="sixty jugemu panel-page">
-      <h2>じゅげむチャレンジ</h2>
+    <section class="sixty heike panel-page">
+      <h2>平家物語チャレンジ</h2>
       <div class="sixty-body">
         <div class="sixty-left panel">
-          <p class="sixty-lead">「じゅげむ じゅげむ ごこうのすりきれ…」<br />さいごの「ちょうすけ」まで、何秒で打てるかな？</p>
+          <p class="sixty-lead">「祇園精舎の鐘の声、諸行無常の響きあり…」<br />「ひとえに風の前の塵に同じ」まで、何秒で打てるかな？</p>
           <ul class="sixty-rules">
             <li>巻物を巻きとるように、打ったところが左へ流れていく</li>
             <li>まちがえると、タイムに +0.5秒</li>
@@ -65,12 +66,12 @@ export function showJugemu(el, go, { start = false } = {}) {
       </div>
     </section>
   `;
-  el.querySelector('[data-act="start"]').addEventListener('click', () => go(playJugemu));
+  el.querySelector('[data-act="start"]').addEventListener('click', () => go(playHeike));
   el.querySelector('[data-act="back"]').addEventListener('click', () => go(showTitle));
   const onKey = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      go(playJugemu);
+      go(playHeike);
     } else if (e.key === 'Escape') go(showTitle);
   };
   window.addEventListener('keydown', onKey);
@@ -81,14 +82,14 @@ export function showJugemu(el, go, { start = false } = {}) {
   };
 }
 
-/** じゅげむのプレイ */
-function playJugemu(el, go) {
+/** 平家物語のプレイ */
+function playHeike(el, go) {
   el.innerHTML = `
-    <section class="play jugemu-play" data-nav="off">
+    <section class="play heike-play" data-nav="off">
       <div class="status">
         <div class="pill timer">タイム <b class="time">0.00</b> 秒</div>
         <div class="pill">ミス <b class="miss">0</b><small class="plus-note">（+0.5秒ずつ）</small></div>
-        <div class="pill">のこり <b class="rest-n">${JUGEMU.length}</b> かたまり</div>
+        <div class="pill">のこり <b class="rest-n">${HEIKE.length}</b> かたまり</div>
       </div>
       ${SCROLL_HTML}
       <div class="jg-bar"><i></i></div>
@@ -105,7 +106,7 @@ function playJugemu(el, go) {
   const bar = $('.jg-bar i');
   const imeWarn = $('.ime-warn');
   setupShake(card);
-  $('[data-act="quit"]').addEventListener('click', () => go(showJugemu));
+  $('[data-act="quit"]').addEventListener('click', () => go(showHeike));
 
   const eq = getEquip();
   const matcher = new RomajiMatcher(FULL);
@@ -130,25 +131,26 @@ function playJugemu(el, go) {
     const curRest = rest.slice(0, Math.max(0, rest.length - nextTail.length));
     // 区切りの最後の「ん」を n 1回だけ打ったところ：この区切りは打ち終わりとして、次の区切りの1文字目を光らせる
     const pend = !matcher.done && curRest === '';
-    track.innerHTML = JUGEMU.map((kana, i) => {
+    track.innerHTML = HEIKE.map(({ text, kana }, i) => {
+      const kj = `<div class="kj">${esc(text)}</div>`; // 漢字まじりの文
       if (i < cur) {
-        return `<div class="jg-p done"><div class="k">${esc(kana)}</div><div class="r">${esc(matcher.typed.slice(split[i], split[i + 1]))}</div></div>`;
+        return `<div class="jg-p done">${kj}<div class="k">${esc(kana)}</div><div class="r">${esc(matcher.typed.slice(split[i], split[i + 1]))}</div></div>`;
       }
       if (i === cur) {
         const kd = pend ? kana.length : matcher.pos - STARTS[i];
         const typed = matcher.typed.slice(split[i]);
-        return `<div class="jg-p cur"><div class="k"><span class="d">${esc(kana.slice(0, kd))}</span>${esc(kana.slice(kd))}</div><div class="r"><span class="t">${esc(typed)}</span><span class="next">${esc(curRest[0] || '')}</span>${esc(curRest.slice(1))}</div></div>`;
+        return `<div class="jg-p cur">${kj}<div class="k"><span class="d">${esc(kana.slice(0, kd))}</span>${esc(kana.slice(kd))}</div><div class="r"><span class="t">${esc(typed)}</span><span class="next">${esc(curRest[0] || '')}</span>${esc(curRest.slice(1))}</div></div>`;
       }
       if (pend && i === cur + 1) {
-        return `<div class="jg-p"><div class="k">${esc(kana)}</div><div class="r"><span class="next">${esc(MODEL[i][0])}</span>${esc(MODEL[i].slice(1))}</div></div>`;
+        return `<div class="jg-p">${kj}<div class="k">${esc(kana)}</div><div class="r"><span class="next">${esc(MODEL[i][0])}</span>${esc(MODEL[i].slice(1))}</div></div>`;
       }
-      return `<div class="jg-p"><div class="k">${esc(kana)}</div><div class="r">${esc(MODEL[i])}</div></div>`;
+      return `<div class="jg-p">${kj}<div class="k">${esc(kana)}</div><div class="r">${esc(MODEL[i])}</div></div>`;
     }).join('');
     place();
     const p = matcher.pos / FULL.length;
     card.style.setProperty('--p', p.toFixed(3));
     bar.style.width = `${(p * 100).toFixed(1)}%`;
-    restEl.textContent = JUGEMU.length - cur - (matcher.done ? 1 : 0);
+    restEl.textContent = HEIKE.length - cur - (matcher.done ? 1 : 0);
   }
 
   /** 次に打つ文字が、紙の左から36%の所にくるように流す */
@@ -162,14 +164,14 @@ function playJugemu(el, go) {
 
   /** 区切りをこえたか（「ん」を n 1回で打つと、次の区切りの1文字目と一度に進むことがある） */
   function advance() {
-    while (cur < JUGEMU.length - 1 && matcher.pos >= STARTS[cur + 1]) {
+    while (cur < HEIKE.length - 1 && matcher.pos >= STARTS[cur + 1]) {
       cur++;
       split[cur] = matcher.typed.length - matcher.buf.length; // いまの区切りで打ち始めた所
       sfx.click();
     }
   }
 
-  const nowMs = () => performance.now() - t0 + miss * JUGEMU_MISS_MS;
+  const nowMs = () => performance.now() - t0 + miss * HEIKE_MISS_MS;
 
   function tick() {
     if (phase !== 'typing') return;
@@ -191,25 +193,25 @@ function playJugemu(el, go) {
     totalMs = Math.round(nowMs());
     cancelAnimationFrame(raf);
     timeEl.textContent = sec(totalMs);
-    split[JUGEMU.length] = matcher.typed.length;
-    cur = JUGEMU.length; // ぜんぶ打ち終わり
+    split[HEIKE.length] = matcher.typed.length;
+    cur = HEIKE.length; // ぜんぶ打ち終わり
     sfx.finish();
     timers.later(showResult, 900); // 巻き終わったところを少し見せる
   }
 
   let shareFn = null;
   function showResult() {
-    const prev = getSave().jugemu.best;
-    const isBest = recordJugemu(totalMs, miss);
-    const scrolls = awardJugemu(isBest);
+    const prev = getSave().heike.best;
+    const isBest = recordHeike(totalMs, miss);
+    const scrolls = awardHeike(isBest);
     const acc = keys + miss ? Math.round((keys / (keys + miss)) * 100) : 100;
-    const rawMs = totalMs - miss * JUGEMU_MISS_MS;
+    const rawMs = totalMs - miss * HEIKE_MISS_MS;
     const kps = (keys / Math.max(1, rawMs / 1000)).toFixed(1);
     el.innerHTML = `
-      <section class="sixty jugemu panel-page result">
+      <section class="sixty heike panel-page result">
         <div class="sixty-body">
           <div class="sixty-left panel">
-            <h2>ちょうすけ まで打ち切った！</h2>
+            <h2>平家物語の冒頭を 打ち切った！</h2>
             <div class="sixty-score"><b>${sec(totalMs)}</b><small>秒</small></div>
             <p class="best-line">${
               isBest
@@ -234,27 +236,27 @@ function playJugemu(el, go) {
         </div>
       </section>
     `;
-    el.querySelector('[data-act="again"]').addEventListener('click', () => go(showJugemu, { start: true }));
+    el.querySelector('[data-act="again"]').addEventListener('click', () => go(showHeike, { start: true }));
     el.querySelector('[data-act="title"]').addEventListener('click', () => go(showTitle));
     const p = getProfile();
     shareFn = setupShare(
       el,
       {
-        mode: 'じゅげむチャレンジ',
+        mode: '平家物語チャレンジ',
         headline: `${sec(totalMs)}秒`,
-        sub: isBest ? '自己ベスト更新！' : 'ちょうすけ まで打ち切った！',
-        lines: [`ミス${miss}回（+${(miss * JUGEMU_MISS_MS) / 1000}秒）・1秒に${kps}回・正確さ ${acc}%`],
+        sub: isBest ? '自己ベスト更新！' : '冒頭を最後まで打ち切った！',
+        lines: [`ミス${miss}回（+${(miss * HEIKE_MISS_MS) / 1000}秒）・1秒に${kps}回・正確さ ${acc}%`],
         name: p.name,
         ninja: p.ninja,
         color: eq.color,
         costume: eq.costume,
       },
-      `はやうち忍者の じゅげむチャレンジを ${sec(totalMs)}秒で 打ち切った！${isBest ? '（自己ベスト）' : ''}`
+      `はやうち忍者の 平家物語チャレンジを ${sec(totalMs)}秒で 打ち切った！${isBest ? '（自己ベスト）' : ''}`
     );
     const msg = el.querySelector('.send-msg');
     (async () => {
       try {
-        const r = await submitJugemu(getProfile(), eq, { ms: totalMs, miss });
+        const r = await submitHeike(getProfile(), eq, { ms: totalMs, miss });
         const list = await fillRank(el, () => alive);
         if (!alive) return;
         const i = list ? list.findIndex((x) => x.mine) : -1;
@@ -280,13 +282,13 @@ function playJugemu(el, go) {
       }
       if (e.key === 'Enter') {
         e.preventDefault();
-        go(showJugemu, { start: true });
+        go(showHeike, { start: true });
       } else if (e.key === 'Escape') go(showTitle);
       return;
     }
     if (e.key === 'Escape') {
       e.preventDefault();
-      go(showJugemu);
+      go(showHeike);
       return;
     }
     if (e.key === ' ' || e.key === 'Enter') e.preventDefault();
@@ -317,7 +319,7 @@ function playJugemu(el, go) {
       shake(card);
       const pill = $('.timer');
       pill.querySelector('.minus')?.remove();
-      pill.insertAdjacentHTML('beforeend', `<span class="minus">+${JUGEMU_MISS_MS / 1000}</span>`);
+      pill.insertAdjacentHTML('beforeend', `<span class="minus">+${HEIKE_MISS_MS / 1000}</span>`);
       timeEl.textContent = sec(nowMs());
     }
   }
@@ -328,7 +330,7 @@ function playJugemu(el, go) {
   draw(); // 巻物の中に、はじめの所を用意しておく
   for (let i = 0; i < 3; i++) {
     timers.later(() => {
-      closeScroll(card, 3 - i, 'じゅげむスタート');
+      closeScroll(card, 3 - i, '平家物語スタート');
       stage.appendChild(track); // closeScroll が中を消すので、もどす
       sfx.count();
     }, (i * READY_MS) / 3);

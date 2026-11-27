@@ -3472,16 +3472,16 @@ svg.flip {
   font-weight: 800;
 }
 
-/* ---- じゅげむチャレンジ：巻物を巻きとるように、打ったところが左へ流れる ---- */
-.jugemu-play .scroll {
+/* ---- 平家物語チャレンジ（もとはじゅげむ）：巻物を巻きとるように、打ったところが左へ流れる ---- */
+.heike-play .scroll {
   height: clamp(220px, 42vh, 340px);
 }
-.jugemu-play .scroll .paper {
+.heike-play .scroll .paper {
   padding: 0;
   overflow: hidden;
   justify-content: flex-start;
 }
-.jugemu-play .stage {
+.heike-play .stage {
   position: relative;
   height: 100%;
   overflow: hidden;
@@ -3548,22 +3548,22 @@ svg.flip {
   background: #ffd9d2;
 }
 /* 左の軸は打つほど太く（巻きとった紙）、右の軸は細く */
-.jugemu-play .scroll .rod.l {
+.heike-play .scroll .rod.l {
   width: calc(var(--roll) * (0.75 + 0.6 * var(--p, 0)));
   left: calc(var(--roll) * (0.75 + 0.6 * var(--p, 0)) / -2);
 }
-.jugemu-play .scroll .rod.r {
+.heike-play .scroll .rod.r {
   width: calc(var(--roll) * (1.35 - 0.6 * var(--p, 0)));
   right: calc(var(--roll) * (1.35 - 0.6 * var(--p, 0)) / -2);
 }
-.jugemu-play .scroll.closed .rod.l,
-.jugemu-play .scroll.closed .rod.r {
+.heike-play .scroll.closed .rod.l,
+.heike-play .scroll.closed .rod.r {
   width: var(--roll);
 }
-.jugemu-play .scroll.closed .rod.l {
+.heike-play .scroll.closed .rod.l {
   left: calc(50% - var(--roll));
 }
-.jugemu-play .scroll.closed .rod.r {
+.heike-play .scroll.closed .rod.r {
   right: calc(50% - var(--roll));
 }
 .jg-bar {
@@ -3586,11 +3586,11 @@ svg.flip {
   margin-left: 2px;
   opacity: 0.8;
 }
-.jugemu .sixty-lead {
+.heike .sixty-lead {
   font-size: clamp(17px, 3vh, 23px);
   line-height: 1.4;
 }
-/* タイトル：しゅぎょう・60秒・じゅげむ を1行に3つ */
+/* タイトル：しゅぎょう・60秒・平家物語 を1行に3つ */
 .title-body {
   grid-template-columns: 240px minmax(0, 600px);
 }
@@ -3690,4 +3690,26 @@ svg.flip {
   padding-left: 12px;
   padding-right: 12px;
   white-space: nowrap;
+}
+
+/* 平家物語：区切りごとに 漢字まじりの文（上）・読み（中）・ローマ字（下） */
+.heike-play .jg-track {
+  margin-top: calc(clamp(30px, 6.4vh, 52px) * -1.55);
+}
+.jg-p .kj {
+  font-family: var(--brush);
+  font-size: clamp(30px, 6.4vh, 52px);
+  line-height: 1.15;
+  color: var(--ink);
+}
+.heike-play .jg-p .k {
+  font-family: var(--font);
+  font-weight: 800;
+  font-size: clamp(18px, 3.8vh, 30px);
+}
+.jg-p.done .kj {
+  color: #b9ad94;
+}
+.jg-p.cur .kj {
+  color: var(--ink);
 }

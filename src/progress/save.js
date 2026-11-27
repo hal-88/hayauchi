@@ -18,7 +18,7 @@ function fresh() {
     cpu: { wins: {}, losses: {} },
     solo: { bestMs: null },
     sixty: { best: null }, // 60秒チャレンジの自己ベスト { words, keys }
-    jugemu: { best: null }, // じゅげむチャレンジの自己ベスト { ms, miss }（ms はミスの +0.5秒こみ）
+    heike: { best: null }, // 平家物語チャレンジの自己ベスト { ms, miss }（ms はミスの +0.5秒こみ）
   };
 }
 
@@ -34,7 +34,7 @@ try {
       cpu: { wins: { ...raw.cpu?.wins }, losses: { ...raw.cpu?.losses } },
       solo: { ...f.solo, ...raw.solo },
       sixty: { ...f.sixty, ...raw.sixty },
-      jugemu: { ...f.jugemu, ...raw.jugemu },
+      heike: { ...f.heike, ...raw.heike },
       ninjas: [...new Set([...f.ninjas, ...(raw.ninjas || [])])],
       items: [...new Set([...f.items, ...(raw.items || [])])],
       ninjutsu: [...new Set([...f.ninjutsu, ...(raw.ninjutsu || [])])],
@@ -204,19 +204,19 @@ export function awardSixty(words, isBest) {
   return n;
 }
 
-/** じゅげむチャレンジの巻物：打ち切ったら2本＋自己ベストなら2本。もらった本数を返す */
-export function awardJugemu(isBest) {
-  const n = SCROLL_RULES.jugemuClear + (isBest ? SCROLL_RULES.bestBonus : 0);
+/** 平家物語チャレンジの巻物：打ち切ったら2本＋自己ベストなら2本。もらった本数を返す */
+export function awardHeike(isBest) {
+  const n = SCROLL_RULES.heikeClear + (isBest ? SCROLL_RULES.bestBonus : 0);
   addScrolls(n);
   persist();
   return n;
 }
 
-/** じゅげむチャレンジの記録。自己ベストなら true */
-export function recordJugemu(ms, miss) {
-  const b = data.jugemu.best;
+/** 平家物語チャレンジの記録。自己ベストなら true */
+export function recordHeike(ms, miss) {
+  const b = data.heike.best;
   const isBest = !b || ms < b.ms;
-  if (isBest) data.jugemu.best = { ms, miss };
+  if (isBest) data.heike.best = { ms, miss };
   persist();
   return isBest;
 }
