@@ -1,7 +1,7 @@
 // 忍術（30個）。試合前に1つセットする。
 // rank：1＝★下忍 2＝★★中忍 3＝★★★上忍（派手さ・おもしろさの目安。強さには差をつけない）
 // type：active＝発動（カウントダウン中にエンター・1試合1回）、passive＝常時（セットしておくだけ）、special＝二刀流
-// starter：最初から覚えている
+// starter：最初から覚えている、secret：「忍術を覚える」では出ない特別な忍術（how＝もらい方）
 // 効果の中身は 6-2（発動型）・6-3（常時型と、術どうしがからむもの）で作る
 export const NINJUTSU_CATS = [
   { id: 'seme', label: '攻め', color: '#cf3b27' },
@@ -11,7 +11,7 @@ export const NINJUTSU_CATS = [
 ];
 
 const L = (cat, rows) =>
-  rows.map(([id, name, rank, type, desc, starter]) => ({ id, name, rank, type, desc, cat, starter: !!starter }));
+  rows.map(([id, name, rank, type, desc, starter, secret]) => ({ id, name, rank, type, desc, cat, starter: !!starter, ...(secret ? { secret: true, how: secret } : {}) }));
 
 export const NINJUTSU = [
   ...L('seme', [
@@ -38,6 +38,8 @@ export const NINJUTSU = [
     ['shuriken', '手裏剣の術', 2, 'active', 'その問題を取ったら、2位の人の次の問題が1文字増える'],
     ['kagenui', '影縫いの術', 2, 'active', 'その問題は、1位の人だけ1秒おそく見える'],
     ['gozaru', 'ござるの術', 3, 'active', '相手の問題の最後に「ござる」がつく'],
+    // 2026-11-28 ゆぐ：平家物語チャレンジを60秒以内で打ち切ると、琵琶法師から授かる（「おごれる人も久しからず」）
+    ['jousha', '盛者必衰の術', 3, 'active', 'その問題は、1位の人（自分いがいで点がいちばん多い人）だけ、ことばを2回つづけて打たないといけない', false, '平家物語チャレンジを60秒以内で打ち切ると、琵琶法師から授かる'],
   ]),
   ...L('toku', [
     ['nintai', '忍耐の術', 1, 'passive', '3問連続で取られると、次の問題が2秒早く見える'],
@@ -53,6 +55,9 @@ export const NINJUTSU = [
     ['katanagari', '刀狩りの術', 3, 'active', 'その問題の間、自分以外の全員の術（常時型もふくむ）が効かなくなる'],
   ]),
 ];
+
+/** 「忍術を覚える」で出る忍術（特別な忍術はのぞく） */
+export const GACHA_NINJUTSU = NINJUTSU.filter((j) => !j.secret);
 
 export const NINJUTSU_STARTERS = NINJUTSU.filter((j) => j.starter).map((j) => j.id);
 

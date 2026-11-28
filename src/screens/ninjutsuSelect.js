@@ -22,7 +22,7 @@ export function showNinjutsuSelect(el, go, { first = false } = {}) {
               <div class="nj-col-head" style="--nc:${c.color}">${c.label}</div>
               ${NINJUTSU.filter((j) => j.cat === c.id)
                 .map(
-                  (j) => `<button type="button" class="nj-item ${hasNinjutsu(j.id) ? '' : 'locked'}" data-id="${j.id}">
+                  (j) => `<button type="button" class="nj-item ${hasNinjutsu(j.id) ? '' : 'locked'} ${j.secret ? 'secret' : ''}" data-id="${j.id}">
                     ${hasNinjutsu(j.id) ? ninjutsuSealHtml(j) : '<span class="nj-seal unknown">？</span>'}
                     <span class="nj-name">${hasNinjutsu(j.id) ? esc(j.name) : '？？？'}</span>
                     <span class="nj-st">${stars(j.rank)}</span>
@@ -60,7 +60,7 @@ export function showNinjutsuSelect(el, go, { first = false } = {}) {
       : `<span class="nj-seal big unknown">？</span>
          <div class="nj-d-name">？？？</div>
          <span class="nj-tags"><span class="nj-stars">${stars(j.rank)}</span></span>
-         <p class="nj-d-desc">「忍術を覚える」で手に入るよ</p>`;
+         <p class="nj-d-desc">${j.secret ? esc(j.how) : '「忍術を覚える」で手に入るよ'}</p>`;
     $('[data-act="ok"]').disabled = !owned;
   }
 

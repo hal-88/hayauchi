@@ -1,7 +1,7 @@
 // 記録はこの端末のブラウザ（localStorage）にだけ保存する
 import { NINJAS, STARTER_IDS } from '../data/ninjas.js';
 import { ALL_ITEMS, DEFAULT_ITEMS, itemKey, REWARDS } from '../data/rewards.js';
-import { NINJUTSU, NINJUTSU_STARTERS, SCROLL_RULES, getNinjutsu } from '../data/ninjutsu.js';
+import { NINJUTSU, GACHA_NINJUTSU, NINJUTSU_STARTERS, SCROLL_RULES, getNinjutsu } from '../data/ninjutsu.js';
 
 const KEY = 'hayauchi.save';
 const listeners = new Set();
@@ -75,6 +75,14 @@ export const getScrolls = () => data.scrolls;
 /** セットしている忍術のID */
 export const getMyNinjutsu = () => (data.profile?.ninjutsu && hasNinjutsu(data.profile.ninjutsu) ? data.profile.ninjutsu : NINJUTSU_STARTERS[0]);
 
+/** 特別な忍術を授かる（もう覚えていたら何もしない）。新しく覚えたら true */
+export function grantNinjutsu(id) {
+  if (!getNinjutsu(id) || hasNinjutsu(id)) return false;
+  data.ninjutsu.push(id);
+  persist();
+  return true;
+}
+
 export function setNinjutsu(id) {
   if (!data.profile || !hasNinjutsu(id)) return;
   data.profile.ninjutsu = id;
@@ -95,7 +103,7 @@ export function learnNinjutsu(rng = Math.random) {
   const r = rng();
   const [p1, p2] = SCROLL_RULES.rates;
   const rank = r < p1 ? 1 : r < p1 + p2 ? 2 : 3;
-  const pool = NINJUTSU.filter((j) => j.rank === rank);
+  const pool = GACHA_NINJUTSU.filter((j) => j.rank === rank);
   const pick = pool[Math.floor(rng() * pool.length)];
   const dup = hasNinjutsu(pick.id);
   if (dup) addScrolls(SCROLL_RULES.dupRefund);
@@ -116,7 +124,7 @@ export function learnNinjutsu10(rng = Math.random) {
   });
   if (Math.max(...ranks) < min) ranks[n - 1] = min;
   const out = ranks.map((rank) => {
-    const pool = NINJUTSU.filter((j) => j.rank === rank);
+    const pool = GACHA_NINJUTSU.filter((j) => j.rank === rank);
     const pick = pool[Math.floor(rng() * pool.length)];
     const dup = hasNinjutsu(pick.id);
     if (dup) addScrolls(dupRefund);

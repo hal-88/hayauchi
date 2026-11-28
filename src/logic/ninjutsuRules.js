@@ -19,7 +19,7 @@ export const NJ_RULES = {
 export const NJ_READY = new Set([
   'shunsoku', 'suketto', 'yokoku', 'shoryaku', 'nidan', 'kakushidama',
   'kekkai', 'kagami',
-  'kemuridama', 'makibishi', 'yurashi', 'bunshin', 'sakasa', 'shuriken', 'kagenui', 'gozaru',
+  'kemuridama', 'makibishi', 'yurashi', 'bunshin', 'sakasa', 'shuriken', 'kagenui', 'gozaru', 'jousha',
   'konoha', 'undameshi', 'shinobiashi', 'fuin', 'utsushimi', 'katanagari',
 ]);
 
@@ -80,6 +80,11 @@ export function shoryakuKana(kana) {
   return out.length ? out : kana;
 }
 
+/** 盛者必衰の術：ことばを2回つづけて打つ */
+export function joushaWord(word) {
+  return { ...word, text: `${word.text}　${word.text}`, kana: `${word.kana}${word.kana}` };
+}
+
 /** ござるの術：問題の最後に「ござる」がつく */
 export function gozaruWord(word) {
   return { ...word, text: `${word.text}ござる`, kana: `${word.kana}ござる` };
@@ -103,7 +108,7 @@ export function undameshiPick(myScore, bestOther, rng = Math.random) {
   return ids[Math.floor(rng() * ids.length)];
 }
 
-/** 影縫いの術がかかる人：使った人以外で、いちばん点が多い人（同点なら全員） */
+/** 影縫い・盛者必衰の術がかかる人：使った人以外で、いちばん点が多い人（同点なら全員） */
 export function kagenuiTargets(scores, userId, order) {
   const others = order.filter((id) => id !== userId);
   if (!others.length) return [];

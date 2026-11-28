@@ -5,7 +5,9 @@
 import { RomajiMatcher } from '../logic/romaji.js';
 import { HEIKE } from '../data/heike.js';
 import { sfx } from '../audio/sfx.js';
-import { awardHeike, getEquip, getProfile, getSave, recordHeike } from '../progress/save.js';
+import { awardHeike, getEquip, getProfile, getSave, recordHeike, grantNinjutsu, hasNinjutsu, setNinjutsu } from '../progress/save.js';
+import { getNinjutsu } from '../data/ninjutsu.js';
+import { ninjutsuSealHtml } from '../ui/scrollUi.js';
 import { scrollGainHtml } from '../ui/scrollUi.js';
 import { loadHeike, submitHeike } from '../online/ranking.js';
 import { spawnAt } from '../ui/effects.js';
@@ -15,6 +17,8 @@ import { showTitle } from './title.js';
 import { esc, readTypingKey, IME_WARN_HTML, SCROLL_HTML, closeScroll, openScroll, shake, setupShake, timerBag } from '../ui/typing.js';
 
 export const HEIKE_MISS_MS = 500; // まちがえると +0.5秒
+export const BIWA_MS = 60000; // これより速く打ち切ると、琵琶法師から【盛者必衰の術】を授かる
+const BIWA_NJ = 'jousha';
 const READY_MS = 3000; // はじまる前の 3・2・1
 const ANCHOR = 0.36; // 次に打つ文字を、紙の左から この割合の所に置く
 
@@ -55,6 +59,7 @@ export function showHeike(el, go, { start = false } = {}) {
             <li>術は使えないよ。打つ速さだけで勝負！</li>
             <li>結果は クラスのランキングに 登録されるよ</li>
             <li>巻物：打ち切ったら2本、自己ベストで さらに2本</li>
+            <li class="biwa-rule">${hasNinjutsu(BIWA_NJ) ? '🎶 琵琶法師から【盛者必衰の術】を授かった！' : '🎶 60秒を切ると、琵琶法師から ひみつの忍術を授かる…'}</li>
           </ul>
           <div class="my-best"><span>自己ベスト</span><b>${b ? timeHtml(b) : '<small>まだなし</small>'}</b></div>
           <div class="buttons">
@@ -204,6 +209,8 @@ function playHeike(el, go) {
     const prev = getSave().heike.best;
     const isBest = recordHeike(totalMs, miss);
     const scrolls = awardHeike(isBest);
+    const gotBiwa = totalMs < BIWA_MS && grantNinjutsu(BIWA_NJ); // 60秒を切ったら、はじめての1回だけ授かる
+    const biwa = getNinjutsu(BIWA_NJ);
     const acc = keys + miss ? Math.round((keys / (keys + miss)) * 100) : 100;
     const rawMs = totalMs - miss * HEIKE_MISS_MS;
     const kps = (keys / Math.max(1, rawMs / 1000)).toFixed(1);
@@ -219,6 +226,11 @@ function playHeike(el, go) {
                 : `自己ベスト ${sec(prev.ms)}秒`
             }</p>
             ${scrollGainHtml(scrolls)}
+            ${
+              gotBiwa
+                ? `<div class="biwa-gift">${ninjutsuSealHtml(biwa)}<div><b>🎶 琵琶法師から【${esc(biwa.name)}】を授かった！</b><small>${esc(biwa.desc)}</small></div><button class="btn small" type="button" data-act="set-biwa">セットする</button></div>`
+                : ''
+            }
             <div class="stats">
               <div class="stat"><span>打ったタイム</span><b>${sec(rawMs)}<small>秒</small></b></div>
               <div class="stat"><span>ミス（+0.5秒）</span><b>${miss}<small>回</small></b></div>
@@ -238,6 +250,12 @@ function playHeike(el, go) {
     `;
     el.querySelector('[data-act="again"]').addEventListener('click', () => go(showHeike, { start: true }));
     el.querySelector('[data-act="title"]').addEventListener('click', () => go(showTitle));
+    el.querySelector('[data-act="set-biwa"]')?.addEventListener('click', (e) => {
+      setNinjutsu(BIWA_NJ);
+      sfx.finish();
+      e.currentTarget.textContent = 'セットした！';
+      e.currentTarget.disabled = true;
+    });
     const p = getProfile();
     shareFn = setupShare(
       el,

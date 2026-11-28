@@ -6,7 +6,7 @@ import { RomajiMatcher, toRomaji } from '../logic/romaji.js';
 import { pickWords } from '../data/words.js';
 import { planCpu, typedCountAt, CPU_LEVELS } from '../logic/cpu.js';
 import { JUTSU_RULES, jutsuOf, jutsuName, canUseJutsu, shortenKana } from '../logic/jutsu.js';
-import { NJ_RULES, PASSIVE_RULES, NJ_PASSIVE, canUseNinjutsu, shoryakuKana, gozaruWord, extendWord, kakushidamaPoints, undameshiPick, ninjaJutsuLimit, kishikaiseiKana, rengekiKana } from '../logic/ninjutsuRules.js';
+import { NJ_RULES, PASSIVE_RULES, NJ_PASSIVE, canUseNinjutsu, shoryakuKana, gozaruWord, joushaWord, extendWord, kakushidamaPoints, undameshiPick, ninjaJutsuLimit, kishikaiseiKana, rengekiKana } from '../logic/ninjutsuRules.js';
 import { effectiveActs, resolveHits, lastOthersAct, JAMA } from '../logic/clash.js';
 import { getNinjutsu } from '../data/ninjutsu.js';
 import { getNinja, cpuNinjaFor, DOUBLE_JUTSU, WALL_JUTSU } from '../data/ninjas.js';
@@ -419,6 +419,7 @@ export function showCpuBattle(el, go, { level, target, foe }) {
     // CPUが打つことば
     let cw = extraNext.cpu ? extendWord(word) : word;
     if (roundJ.cpu === 'tanshuku') cw = { ...cw, kana: shortenKana(cw.kana).kana };
+    if (roundNj === 'jousha' && score.cpu >= score.me) cw = joushaWord(cw); // 盛者必衰：CPUが1位（同点もふくむ）なら2回つづけて
     if (roundNj === 'gozaru') cw = gozaruWord(cw);
     extraNext.me = false;
     extraNext.cpu = false;

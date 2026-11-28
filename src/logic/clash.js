@@ -14,7 +14,7 @@
 // じゃま術（相手にかかる術）
 export const JAMA = new Set([
   'mekuramashi', 'koorase', 'kakuremi', // 忍者の術
-  'kemuridama', 'makibishi', 'yurashi', 'bunshin', 'sakasa', 'gozaru', 'kagenui', 'shuriken', // 忍術
+  'kemuridama', 'makibishi', 'yurashi', 'bunshin', 'sakasa', 'gozaru', 'kagenui', 'shuriken', 'jousha', // 忍術
 ]);
 // 見えなくする術（心眼で効かない）
 export const BLIND = new Set(['mekuramashi', 'kakuremi', 'kemuridama', 'bunshin', 'sakasa']);

@@ -8,7 +8,7 @@
 import { RomajiMatcher } from '../logic/romaji.js';
 import { JUTSU_RULES, jutsuOf, jutsuName, canUseJutsu, shortenKana, leaderToSteal } from '../logic/jutsu.js';
 import { jutsuChipHtml, showJutsuBanner, blurFor, freezeFor, hideKana, jutsuHintHtml, drawJutsuHint, nudgeHint, flashCard, smokeFor, wobbleFor, flipFor, showFake, keyHelp, showYokoku, clearYokoku } from '../ui/jutsuUi.js';
-import { NJ_RULES, NJ_PASSIVE, PASSIVE_RULES, canUseNinjutsu, shoryakuKana, gozaruWord, extendWord, kakushidamaPoints, undameshiPick, kagenuiTargets, fakeWordFor, ninjaJutsuLimit, rengekiKana, kishikaiseiKana } from '../logic/ninjutsuRules.js';
+import { NJ_RULES, NJ_PASSIVE, PASSIVE_RULES, canUseNinjutsu, shoryakuKana, gozaruWord, joushaWord, extendWord, kakushidamaPoints, undameshiPick, kagenuiTargets, fakeWordFor, ninjaJutsuLimit, rengekiKana, kishikaiseiKana } from '../logic/ninjutsuRules.js';
 import { effectiveActs, resolveHits, passivesOn, lastOthersAct } from '../logic/clash.js';
 import { getNinjutsu } from '../data/ninjutsu.js';
 import { WALL_JUTSU } from '../data/ninjas.js';
@@ -163,7 +163,7 @@ export function showOnlineBattle(el, go, { code }) {
 
   /** じゃま術がだれにかかるか */
   function targetsOf(a) {
-    if (a.id === 'kagenui') return kagenuiTargets(scoresBefore(localRound), a.uid, order());
+    if (a.id === 'kagenui' || a.id === 'jousha') return kagenuiTargets(scoresBefore(localRound), a.uid, order()); // 1位の人
     if (a.id === 'shuriken') return []; // 手裏剣はつぎの問題で（setupRound）
     return activeMembers(room)
       .map(([u]) => u)
@@ -342,6 +342,7 @@ export function showOnlineBattle(el, go, { code }) {
   /** 自分が打つことばを決める（自分の術・受けたじゃま術・常時型） */
   function buildMyWord(myIds, hitIds) {
     let w = shurikenOnMe ? myWord : word;
+    if (hitIds.has('jousha')) w = joushaWord(w); // 盛者必衰：2回つづけて
     if (hitIds.has('gozaru')) w = gozaruWord(w); // ござる
     if (myIds.has('tanshuku')) {
       const s = shortenKana(w.kana);
